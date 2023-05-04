@@ -1,0 +1,50 @@
+#Imports
+import os
+import shutil
+import pandas as pd
+import sqlite3
+
+
+def data_to_df(relative_path):
+    #Filters out the required excel files (makes a copy). Make sure you are in the correct dir where your data is stored
+    dataset_dir = relative_path  # replace with the path to your dataset folder
+    filtered_dir = dataset_dir+"CLEANED"  # replace with the path to the folder where you want to store the filtered data
+    if not os.path.exists(filtered_dir):
+        os.makedirs(filtered_dir)
+
+    for month_folder in os.listdir(dataset_dir):
+        if not month_folder.startswith("20"):  # skip any folders that don't start with a date
+            continue
+        for csv_file in os.listdir(os.path.join(dataset_dir, month_folder)):
+            if not csv_file.endswith("-metropolitan-street.csv"):  # skip any files that don't match the desired format
+                continue
+            source_path = os.path.join(dataset_dir, month_folder, csv_file)
+            destination_path = os.path.join(filtered_dir, csv_file)
+            shutil.copy(source_path, destination_path)  # copy the matching file to the filtered_data folder
+
+
+    folder_path = filtered_dir  # replace with the path to your Excel files folder
+    df_list = []
+    for file in os.listdir(folder_path):
+        if file.endswith(".csv"):  # only read in CSV files
+            file_path = os.path.join(folder_path, file)
+            df = pd.read_csv(file_path)
+            df_list.append(df)
+    combined_df = pd.concat(df_list, ignore_index=True)
+    return combined_df
+
+def df_to_SQLdb(path, df):
+    # Connect to an SQLite database (creates a new database file if it doesn't exist)
+    conn = sqlite3.connect(path)
+
+    # Write DataFrame to an SQL database table
+    df.to_sql('table_name', conn, if_exists='replace', index=False)
+
+    # Close the database connection
+    conn.close()
+
+def raw_data_to_SQLdb(database_path, data_relative_path):
+    df=data_to_df(data_relative_path)
+    df_to_SQLdb(database_path, df)
+    
+raw_data_to_SQLdb('C:\\Users\\shash\\OneDrive - TU Eindhoven\\Shashank Prabhu University\\Year 2\\Year 2 Q4\\Data Challenge 2\\Git DC2\\Data\\database_conc_test.db', "C:\\Users\\shash\\OneDrive - TU Eindhoven\\Shashank Prabhu University\\Year 2\\Year 2 Q4\\Data Challenge 2\\Git DC2\\Data\\All data")
