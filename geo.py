@@ -15,7 +15,8 @@ from mysql.connector.cursor import MySQLCursor
 
 def getForceBoundariesDir() -> Path:
     cwd = Path.cwd()
-    data = cwd.joinpath("data")
+    parent = cwd.parent
+    data = parent.joinpath("data")
     unzipped = data.joinpath("unzipped")
     force_kml = unzipped.joinpath("force_boundaries")
     return force_kml
