@@ -30,7 +30,8 @@ def data_to_df(relative_path):
             file_path = os.path.join(folder_path, file)
             df = pd.read_csv(file_path)
             df_list.append(df)
-    combined_df = pd.concat(df_list, ignore_index=True)
+    combined_df_temp = pd.concat(df_list, ignore_index=True)
+    combined_df = combined_df_temp.drop(['Context', 'Last outcome category', 'Crime ID' ], axis=1).dropna()
     return combined_df
 
 def df_to_SQLdb(path, df):
@@ -48,3 +49,4 @@ def raw_data_to_SQLdb(database_path, data_relative_path):
     df_to_SQLdb(database_path, df)
     
 raw_data_to_SQLdb('C:\\Users\\shash\\OneDrive - TU Eindhoven\\Shashank Prabhu University\\Year 2\\Year 2 Q4\\Data Challenge 2\\Git DC2\\Data\\database_conc_test.db', "C:\\Users\\shash\\OneDrive - TU Eindhoven\\Shashank Prabhu University\\Year 2\\Year 2 Q4\\Data Challenge 2\\Git DC2\\Data\\All data")
+#add the abs path to where you want the DB to be (with the file name) as well as the folder with all the excel files as the inputs
