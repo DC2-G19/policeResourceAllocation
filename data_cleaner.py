@@ -44,9 +44,12 @@ def df_to_SQLdb(path, df):
     # Close the database connection
     conn.close()
 
-def raw_data_to_SQLdb(database_path, data_relative_path):
+def df_to_csv(path, df):
+    df.to_csv(path, index=False)  # save the combined DataFrame to a new CSV file
+
+def raw_data_to_file(save_path, data_relative_path):
     df=data_to_df(data_relative_path)
-    df_to_SQLdb(database_path, df)
+    df_to_csv(save_path, df)
     
-raw_data_to_SQLdb('C:\\Users\\shash\\OneDrive - TU Eindhoven\\Shashank Prabhu University\\Year 2\\Year 2 Q4\\Data Challenge 2\\Git DC2\\Data\\database_conc_test.db', "C:\\Users\\shash\\OneDrive - TU Eindhoven\\Shashank Prabhu University\\Year 2\\Year 2 Q4\\Data Challenge 2\\Git DC2\\Data\\All data")
+raw_data_to_file('C:\\Users\\shash\\OneDrive - TU Eindhoven\\Shashank Prabhu University\\Year 2\\Year 2 Q4\\Data Challenge 2\\Git DC2\\Data\\conc_clean.csv', "C:\\Users\\shash\\OneDrive - TU Eindhoven\\Shashank Prabhu University\\Year 2\\Year 2 Q4\\Data Challenge 2\\Git DC2\\Data\\All data")
 #add the abs path to where you want the DB to be (with the file name) as well as the folder with all the excel files as the inputs
