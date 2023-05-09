@@ -1,7 +1,8 @@
 from pathlib import Path
+from tqdm import tqdm
+import numpy as np
 import pandas as pd
-from typing import Tuple
-
+import matplotlib.pyplot as plt
 
 
 def getIMD() -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -14,25 +15,21 @@ def getIMD() -> Tuple[pd.DataFrame, pd.DataFrame]:
     return imd2015DF, imd2019DF
 
 
+def cleanIMD(df: pd.DataFrame) -> pd.DataFrame:
+    del df["Units"]
+    def df["DateCode"]
+    return df
+
+def splitIMDframe(df: pd.DataFrame) -> pd.DataFrame:
+    scoreFrame = df[df["Measurement"] == "Score"]
+    rankFrame = df[df["Measurement"] == "Rank"]
+    decileFrame = df[df["Measurement"] == "Decile"]
+    return scoreFrame, rankFrame, decileFrame
+
+
+
 imd2015DF, imd2019DF = getIMD()
 
-#%%
-del imd2015DF["Units"]
-del imd2015DF["DateCode"]
-#%%
-imd2015DF.describe()
 
-#%%
-imd2015DF.head()
-
-#%%
-imd2015DF["Measurement"].unique()
-
-#%%
-count = imd2015DF["FeatureCode"].value_counts()
-print((len(count[count>1]),len(imd2015DF["FeatureCode"].unique())))
-
-#%%
-imd2015DF["Indices of Deprivation"].unique()
 
 
