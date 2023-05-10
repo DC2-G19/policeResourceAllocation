@@ -20,7 +20,6 @@ def getIMD() -> Tuple[pd.DataFrame, pd.DataFrame]:
     imd2015DF = pd.read_csv(imd2015path)
     imd2019DF = pd.read_csv(imd2019path)
     return imd2015DF, imd2019DF
-imd2015DF, imd2019DF = getIMD()
 
 def remove_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop(columns=["Units", "DateCode"])
@@ -53,37 +52,43 @@ def preProcessing(origin: pd.DataFrame) -> pd.DataFrame:
     iodByFeaturecode.index.rename("LSOA Code", inplace=True)    
     return iodByFeaturecode.reindex(sorted(iodByFeaturecode.columns), axis=1)
 
+def main():
+    imd2015DF, imd2019DF = getIMD()
 
+    imd2015DF = remove_columns(imd2015DF)
+    imd2019DF = remove_columns(imd2019DF)
 
-imd2015DF = remove_columns(imd2015DF)
-imd2019DF = remove_columns(imd2019DF)
+    score15, rank15, decile15 = threeWaySplit(df=imd2015DF)
+    print("PREPROCESSING")
+    iodByFeatCode15score = preProcessing(origin=score15)
+    # iodByFeatCode15rank= preProcessing(origin=rank15)
+    # iodByFeatCode15decile= preProcessing(origin=decile15)
 
-score15, rank15, decile15 = threeWaySplit(df=imd2015DF)
+    score19, rank19, decile19 = threeWaySplit(df = imd2019DF)
 
-iodByFeatCode15score = preProcessing(origin=score15)
-# iodByFeatCode15rank= preProcessing(origin=rank15)
-# iodByFeatCode15decile= preProcessing(origin=decile15)
+    iodByFeatCode19score = preProcessing(origin=score19)
+    # iodByFeatCode19rank = preProcessing(origin=rank19)
+    # iodByFeatCode19decile = preProcessing(origin=decile19)
 
-score19, rank19, decile19 = threeWaySplit(df = imd2019DF)
+    dropnadDBpath = dbPath()
+    print("CONNECTING TO DATABASE")
+    conn = sqlite3.connect(dropnadDBpath)
+    print("ADDING CHANGES TO DATABASE")
+    iodByFeatCode19score.to_sql(
+        'IOD_feature_code_score_19',
+        conn,
+        if_exists='replace',
+        index=True
+    )
 
-iodByFeatCode19score = preProcessing(origin=score19)
-# iodByFeatCode19rank = preProcessing(origin=rank19)
-# iodByFeatCode19decile = preProcessing(origin=decile19)
+    iodByFeatCode15score.to_sql(
+        'IOD_feature_code_score_15',
+        conn,
+        if_exists='replace',
+        index=True
+    )
+    conn.close()
+    print('CLOSING CONNECTION TO DATABASE')
 
-dropnadDBpath = dbPath()
-
-conn = sqlite3.connect(dropnadDBpath)
-iodByFeatCode19score.to_sql(
-    'IOD_feature_code_score_19',
-    conn,
-    if_exists='replace',
-    index=True
-)
-
-iodByFeatCode15score.to_sql(
-    'IOD_feature_code_score_15',
-    conn,
-    if_exists='replace',
-    index=True
-)
-conn.close()
+if __name__ == "__main__":
+    main()
