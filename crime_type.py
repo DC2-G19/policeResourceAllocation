@@ -152,8 +152,5 @@ def nb_model(df : pd.DataFrame, vars_list: list):
     log_likelihood = result.llf
     print('SSR:', sum_squared_residuals, 'Chi2:', chi2, 'Deviance:', deviance, 'Log-likelihood:', log_likelihood)
 
-nb_model(df, ['Vehicle crime'])
-
-
 
 
