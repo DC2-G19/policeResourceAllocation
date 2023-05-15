@@ -1,7 +1,14 @@
 from imd2SQL import dbPath
 import sqlite3
 import pandas as pd
+from pathlib import Path
 
+
+def barnetLsoaPath()-> Path:
+    cwd = Path.cwd()
+    dc2 = cwd.parent
+    data = dc2.joinpath("data/barnet_lsoa_codes.csv")
+    return data
 
 def barnet_LSOA_series()->pd.Series:
     dropnaDBpath = dbPath()
@@ -13,12 +20,15 @@ def barnet_LSOA_series()->pd.Series:
     lsoaCodesAndNamesDF = pd.read_sql(lsoaCodesAndNamesQuery, conn)
     lsoaCodesAndNamesDF.dropna(inplace=True)
     lsoaCodesAndNamesDF.drop_duplicates(inplace=True)
+    print(len(lsoaCodesAndNamesDF))
+    lsoaCodesAndNamesDF = lsoaCodesAndNamesDF[lsoaCodesAndNamesDF["LSOA name"].str.contains("Barnet")]
+    print(len(lsoaCodesAndNamesDF))
     conn.close()
     return lsoaCodesAndNamesDF["LSOA code"]
 
 def main():
     ser = barnet_LSOA_series()
-    ser.to_csv(dbPath().joinpath("barnet_lsoa_codes.csv"))
+    ser.to_csv(barnetLsoaPath())
 
 if __name__ == "__main__":
     main()
