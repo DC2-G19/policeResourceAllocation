@@ -85,6 +85,8 @@ def max_nr_crimes():
 
     plt.show()
 
+    print('total number of crimes: ' + str(sum(df_most_crimes['count("Crime ID")'])) + ' percentage from total number of crimes: ' + str((sum(df_most_crimes['count("Crime ID")'])/sum(df_nr_crimes['count("Crime ID")']))*100) + '%')
+
 def max_nr_burglaries():
     query = '''
         SELECT WD23NM, count("Crime ID")
@@ -141,6 +143,10 @@ def max_nr_burglaries():
     plt.axis('equal')
 
     plt.show()
+
+    sum(df_most_burglaries['count("Crime ID")'])
+    print('total number of burglaries: ' + str(sum(df_most_burglaries['count("Crime ID")'])) + ' percentage from total number of burglaries: ' + str((sum(df_most_burglaries['count("Crime ID")']) / sum(df_nr_burglaries['count("Crime ID")'])) * 100) + '%' + ' percentage from total number of crimes: ' + str((sum(df_most_burglaries['count("Crime ID")']) /273341) * 100) + '%')
+
 
 max_nr_crimes()
 max_nr_burglaries()
