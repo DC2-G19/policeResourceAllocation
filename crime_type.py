@@ -14,6 +14,7 @@ from sklearn.feature_selection import SelectFromModel
 
 df = pd.read_csv('C:/Users/20212324/DC2/conc.csv')
 
+
 def plot_crime_type_histogram(df : pandas.DataFrame):
     grouped1 = df.groupby('Crime type', dropna=False).size()
     grouped1.plot.bar(x=grouped1.index, y=grouped1[:], rot=90)
