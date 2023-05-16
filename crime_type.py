@@ -12,8 +12,7 @@ from sklearn.linear_model import Lasso
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
 
-df = pd.read_csv('C:/Users/20212324/DC2/conc.csv')
-
+df = pd.read_csv('C:/Users/20212324/DC2/conc_clean.csv')
 
 def plot_crime_type_histogram(df : pandas.DataFrame):
     grouped1 = df.groupby('Crime type', dropna=False).size()
@@ -132,11 +131,10 @@ def nb_model(df : pd.DataFrame, vars_list: list):
     grouped = df.groupby(['LSOA code', 'Crime type']).size().reset_index(name='count')
     pivoted = grouped.pivot_table(index='LSOA code', columns='Crime type', values='count', fill_value=0)
     new_df = pd.DataFrame(pivoted)
-    crime_data = new_df[['Anti-social behaviour', 'Criminal damage and arson', 'Vehicle crime', 'Violence and sexual offences','Burglary']]
 
     # train the nb model
-    X = crime_data[vars_list]
-    y = crime_data[['Burglary']]
+    X = new_df[vars_list]
+    y = new_df[['Burglary']]
     X = sm.add_constant(X)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
     model = sm.GLM(y_train, X_train, family=sm.families.NegativeBinomial())
@@ -154,4 +152,4 @@ def nb_model(df : pd.DataFrame, vars_list: list):
     print('SSR:', sum_squared_residuals, 'Chi2:', chi2, 'Deviance:', deviance, 'Log-likelihood:', log_likelihood)
 
 
-
+nb_model(df, ['Vehicle crime'])
