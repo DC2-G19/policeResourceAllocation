@@ -27,9 +27,10 @@ def remove_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop(columns=["Units", "DateCode"])
 
 def threeWaySplit(df:pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    decileDF = df[df["Measurement"] == "Decile "]
     scoreDF = df[df["Measurement"] == "Score"]
     rankDF = df[df["Measurement"] == "Rank"]
-    decileDF = df[df["Measurement"] == "Decile"]
+
     return scoreDF, rankDF, decileDF
 
 def makePreprocessedDf(df: pd.DataFrame) -> pd.DataFrame:
