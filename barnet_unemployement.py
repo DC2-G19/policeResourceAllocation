@@ -15,7 +15,7 @@ def get_barnet_data()-> List:
 def dbPath()-> Path:
     cwd = Path.cwd()
     parent = cwd.parent
-    dbPath = parent.joinpath("data/database_conc_na.db")
+    dbPath = parent.joinpath("data/database_final.db")
     return dbPath
 
 def main():

@@ -1,7 +1,6 @@
 import sqlite3 
 import pandas as pd 
 from tqdm import tqdm 
-import matplotlib.pyplot as plt
 from pathlib import Path
 
 def get_final_db_path() -> Path:
@@ -26,20 +25,35 @@ def main():
     lsoa_codes_names = pd.read_sql(query_codes_and_names, conn)
     lsoa_codes_names_list = lsoa_codes_names["geogcode"].to_list()
     joined = "', '".join(lsoa for lsoa in lsoa_codes_names_list[:])
-    query = f"""
+    query_burglary = f"""
     SELECT Month, [LSOA code]
     FROM table_name
     WHERE [LSOA code] IN ('{joined}') AND [Crime type] = 'Burglary'
     """
-    burglaries = pd.read_sql(query, conn)
-    # print(burglaries.info())
-    # print(burglaries.head())
+    burglaries = pd.read_sql(query_burglary, conn)
+    
+    query_unemployement = """
+    SELECT *
+    FROM montly_unemployement_claimant_count_by_lsoa_barnet
+    """
+    unemployment = pd.read_sql(query_unemployement, conn)
+    unemployment.dropna(inplace=True)
+    del unemployment["index"]
+    unemployment["date"] = pd.to_datetime(unemployment["date"])
+    # print(unemployment.info())
+    # print(unemployment.head())
+
+    
     burglaries["Month"] = pd.to_datetime(burglaries["Month"])
     burglaries_month_by_lsoa = {}
     for code in tqdm(burglaries["LSOA code"].unique()):
-        frame = burglaries[burglaries["LSOA code"] == code]["Month"].copy()
+        burglaries_frame = pd.DataFrame(columns=["date"])
+        burglaries_frame["date"] = burglaries[burglaries["LSOA code"] == code]["Month"].copy()
+        unemployment_frame = unemployment[unemployment["geogcode"]== code]
+        unemployment_frame = unemployment_frame.set_index("date")
+        del unemployment_frame["geogcode"]
         # print(frame.value_counts())
-        burglaries_month_by_lsoa[code] = frame.value_counts()
+        burglaries_month_by_lsoa[code] = (burglaries_frame.value_counts(), unemployment_frame)
 
     pd.to_pickle(burglaries_month_by_lsoa, pickPath())
     print("PICKLING IS DONE")
