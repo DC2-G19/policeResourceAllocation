@@ -3,19 +3,22 @@ import sunlight_to_sql
 import housing_combined
 import imd2SQL
 import unemployement_to_sql
-
+import crimeReplacer
 
 def main():
-    print("Unemployement by LSOA by month in barnet")
+    print("Unemployement by LSOA by Month in Barnet")
     barnet_unemployement.main()
-    print("sunlight")
+    print("Sunlight")
     sunlight_to_sql.main()
-    print("housing_combined")
+    print("Housing Combined")
     housing_combined.main()
     print("IMD")
     imd2SQL.main()
-    print("Unemployement By Ward")
+    print("Unemployement by Ward")
     unemployement_to_sql.main()
+    print("Replace Main Table")
+    crimeReplacer.main()
+
 
 if __name__ == "__main__":
     main()
