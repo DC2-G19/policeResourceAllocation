@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from shapely.geometry import Polygon
 
 # combine all geojson into one
-geojson_directory = 'C:/Users/20212324/DC2/metropolitan/barnet_wards_geojson/'
+geojson_directory = 'C:/Users/20212324/DC2/metropolitan/barnet_wards_geojson/'  # folder with geojson files per ward in Barnet
 gdf_list = []
 for filepath in glob.glob(os.path.join(geojson_directory, '*.geojson')):
     gdf = gpd.read_file(filepath)
@@ -26,7 +26,7 @@ print(combined_gdf)
 #combined_gdf.plot()
 #plt.show()
 
-cpw = pd.read_csv('C:/Users/20212324/DC2/counts_per_ward.csv')
+cpw = pd.read_csv('C:/Users/20212324/DC2/counts_per_ward.csv') # csv file with counts of burglary per ward in Barnet
 print(cpw)
 merged_cpw_geo = pd.merge(combined_gdf, cpw, on=['Ward code'])
 print(merged_cpw_geo)
@@ -112,7 +112,7 @@ import webbrowser
 import pandas as pd
 from branca.colormap import linear
 
-df = pd.read_csv('C:/Users/20212324/DC2/lat_long_nr.csv')
+df = pd.read_csv('C:/Users/20212324/DC2/lat_long_nr.csv') # csv file with a latitude and logitude for each LSOA and the counts of burglary for that
 # Merge the ward boundaries data with the count data from the CSV
 merged_data = pd.merge(merged_cpw_geo, df, on='Ward code')
 # Create a colormap based on the count values
@@ -139,6 +139,7 @@ for index, row in df.iterrows():
         location=[row['Latitude'], row['Longitude']],
         radius=5,
         color='black',
+        fill=True,
         fill=True,
         fill_color=nr_colormap(row['Predicted_nr_burglaries']),
         fill_opacity=0.7,
