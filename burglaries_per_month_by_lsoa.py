@@ -55,9 +55,10 @@ def main():
         # print(frame.value_counts())
         burglaries_month_by_lsoa[code] = (burglaries_frame.value_counts(), unemployment_frame)
 
-    pd.to_pickle(burglaries_month_by_lsoa, pickPath())
-    print("PICKLING IS DONE")
+    # pd.to_pickle(burglaries_month_by_lsoa, pickPath())
+    # print("PICKLING IS DONE")
     conn.close()
+    return burglaries_month_by_lsoa
 
 
 if __name__ == "__main__":
