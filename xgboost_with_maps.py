@@ -3,9 +3,11 @@ import pandas as pd
 import numpy as np
 import xgboost as xgb
 from xgboost import XGBRegressor
-from pathFunc import dbPath, dataDir
+#from pathFunc import dbPath, dataDir
 
-conn = sqlite3.connect(dbPath())
+path = 'C:/Users/20212324/DC2/database_final.db'
+conn = sqlite3.connect(path)
+#conn = sqlite3.connect(dbPath())
 query_burg = """SELECT * FROM table_name
 WHERE "Crime Type" = "Burglary"
 """
@@ -134,7 +136,6 @@ metrics = {
 
 # Create a DataFrame from the dictionary
 metrics_df = pd.DataFrame(metrics)
-metrics_df
 #%%
 df_date_lsoa_burg_temp = df_temp_merged_clean_test[['LSOA code', 'Month', 'Total Burglaries']].reset_index(drop=True, inplace=False)
 predictions_df = pd.DataFrame(predictions, columns=['Prediction'])
@@ -364,6 +365,7 @@ for month in unique_months:
 
 
 
+
 # predicted buglaries per lsoa per month
 counts_per_LSOA_month = new_df.groupby(['LSOA code', 'Month'])['Prediction'].sum().reset_index()
 unique_months = counts_per_LSOA_month['Month'].unique()
@@ -395,6 +397,7 @@ counts_per_LSOA_month2 = new_df.groupby(['LSOA code', 'Month'])['Total Burglarie
 unique_months2 = counts_per_LSOA_month2['Month'].unique()
 vmin = counts_per_LSOA_month['Prediction'].min()
 vmax = counts_per_LSOA_month['Prediction'].max()
+
 for month in unique_months2:
     month_data = counts_per_LSOA_month2[counts_per_LSOA_month2['Month'] == month]
     merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
@@ -437,7 +440,6 @@ m = folium.Map(
     location=[merged_cpw_geo['geometry'][0].centroid.y, merged_cpw_geo['geometry'][0].centroid.x],
     zoom_start=11
 )
-
 # Add the Ward boundaries to the map for the selected month
 folium.GeoJson(
     merged_data_selected_month_ward.drop(columns=['Month']),
@@ -450,7 +452,6 @@ folium.GeoJson(
     },
     tooltip=folium.GeoJsonTooltip(fields=['Ward code', 'Prediction'], labels=True, sticky=True)
 ).add_to(m)
-
 # Add the LSOA boundaries to the map for the selected month
 folium.GeoJson(
     merged_data_selected_month_lsoa.drop(columns=['Month']),
@@ -471,3 +472,87 @@ folium.LayerControl().add_to(m)
 map_file = 'interactive_map.html'
 m.save(map_file)
 webbrowser.open_new_tab(map_file)
+
+
+# side by side actual - predicted
+# predicted
+counts_per_LSOA_month = new_df.groupby(['LSOA code', 'Month'])['Prediction'].sum().reset_index()
+unique_months = counts_per_LSOA_month['Month'].unique()
+# choose a month
+month_nr = input('Enter the month number (__): ')
+selected_month = '2019-' + month_nr + '-01'
+vmin = counts_per_LSOA_month['Prediction'].min()
+vmax = counts_per_LSOA_month['Prediction'].max()
+# Filter the data for the selected month on both Ward and LSOA layers
+month_data = counts_per_LSOA_month[counts_per_LSOA_month['Month'] == selected_month]
+merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
+ax = merged_cpl_geo.plot(column='Prediction', cmap='Blues', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+# Add annotations for each LSOA
+#for idx, row in merged_cpl_geo.iterrows():
+#    centroid = row['geometry'].centroid
+#    ax.annotate(str(row['LSOA code']) + "\n" + str(round(row['Prediction'], 1)), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
+# Style the map
+ax.set_title('Predicted Number of Burglaries per LSOA - {}'.format(selected_month))
+sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm.set_array(merged_cpl_geo['Prediction'])
+cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+cbar.set_label('Prediction')
+plt.xlabel('latitude')
+plt.ylabel('longitude')
+plt.show()
+# actual data
+counts_per_LSOA_month2 = new_df.groupby(['LSOA code', 'Month'])['Total Burglaries'].sum().reset_index()
+month_data = counts_per_LSOA_month2[counts_per_LSOA_month2['Month'] == selected_month]
+merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
+ax = merged_cpl_geo.plot(column='Total Burglaries', cmap='Blues', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+# Add annotations for each LSOA
+#for idx, row in merged_cpl_geo.iterrows():
+#    centroid = row['geometry'].centroid
+#    ax.annotate(str(row['LSOA code']) + "\n" + str(round(row['Total Burglaries'], 1)), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
+# Style the map
+ax.set_title('Actual Number of Burglaries per LSOA - {}'.format(selected_month))
+sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm.set_array(merged_cpl_geo['Total Burglaries'])
+cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+cbar.set_label('Total Burglaries')
+plt.xlabel('latitude')
+plt.ylabel('longitude')
+plt.show()
+
+
+
+# choose a month
+month_nr = input('Enter the month number (__): ')
+selected_month = '2019-' + month_nr + '-01'
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+
+# Predicted Number of Burglaries per LSOA
+counts_per_LSOA_month = new_df.groupby(['LSOA code', 'Month'])['Prediction'].sum().reset_index()
+vmin = counts_per_LSOA_month['Prediction'].min()
+vmax = counts_per_LSOA_month['Prediction'].max()
+month_data = counts_per_LSOA_month[counts_per_LSOA_month['Month'] == selected_month]
+merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
+merged_cpl_geo.plot(column='Prediction', cmap='Blues', edgecolor='black', linewidth=0.5, ax=ax1)
+ax1.set_title('Predicted Number of Burglaries per LSOA - {}'.format(selected_month))
+sm1 = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm1.set_array(merged_cpl_geo['Prediction'])
+cbar1 = plt.colorbar(sm1, orientation='vertical', shrink=0.6, ax=ax1)
+cbar1.set_label('Prediction')
+ax1.set_xlabel('latitude')
+ax1.set_ylabel('longitude')
+
+# Actual Number of Burglaries per LSOA
+counts_per_LSOA_month2 = new_df.groupby(['LSOA code', 'Month'])['Total Burglaries'].sum().reset_index()
+month_data = counts_per_LSOA_month2[counts_per_LSOA_month2['Month'] == selected_month]
+merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
+merged_cpl_geo.plot(column='Total Burglaries', cmap='Blues', edgecolor='black', linewidth=0.5, ax=ax2)
+ax2.set_title('Actual Number of Burglaries per LSOA - {}'.format(selected_month))
+sm2 = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm2.set_array(merged_cpl_geo['Total Burglaries'])
+cbar2 = plt.colorbar(sm2, orientation='vertical', shrink=0.6, ax=ax2)
+cbar2.set_label('Total Burglaries')
+ax2.set_xlabel('latitude')
+ax2.set_ylabel('longitude')
+
+plt.tight_layout()
+plt.show()
