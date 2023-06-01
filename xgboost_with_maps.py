@@ -3,11 +3,11 @@ import pandas as pd
 import numpy as np
 import xgboost as xgb
 from xgboost import XGBRegressor
-#from pathFunc import dbPath, dataDir
+from pathFunc import dbPath, dataDir
 
-path = 'C:/Users/20212324/DC2/database_final.db'
-conn = sqlite3.connect(path)
-#conn = sqlite3.connect(dbPath())
+#path = 'C:/Users/20212324/DC2/database_final.db'
+#conn = sqlite3.connect(path)
+conn = sqlite3.connect(dbPath())
 query_burg = """SELECT * FROM table_name
 WHERE "Crime Type" = "Burglary"
 """
