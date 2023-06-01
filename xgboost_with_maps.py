@@ -6,7 +6,6 @@ from xgboost import XGBRegressor
 from pathFunc import dbPath, dataDir
 
 conn = sqlite3.connect(dbPath())
-conn = sqlite3.connect(path)
 query_burg = """SELECT * FROM table_name
 WHERE "Crime Type" = "Burglary"
 """
@@ -212,6 +211,8 @@ geo_LSOA = geo_LSOA[['geometry', 'lsoa11cd']]
 geo_LSOA.rename(columns={'lsoa11cd': 'LSOA code'}, inplace=True)
 counts_per_LSOA = new_df.groupby('LSOA code')['Prediction'].sum().reset_index()
 merged_cpl_geo = pd.merge(geo_LSOA, counts_per_LSOA, on=['LSOA code'])
+vmin = counts_per_LSOA['Prediction'].min()
+vmax = counts_per_LSOA['Prediction'].max()
 # Plot the merged GeoDataFrame with filled polygons
 ax = merged_cpl_geo.plot(column='Prediction', cmap='Blues', edgecolor='black', linewidth=0.5, figsize=(10, 10))
 ## for annotations:
@@ -220,7 +221,7 @@ ax = merged_cpl_geo.plot(column='Prediction', cmap='Blues', edgecolor='black', l
     #ax.annotate( str(row['LSOA code']) + "\n" + str(row['Prediction']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
 # style the map
 ax.set_title('Predicted Number of Burglaries per LSOA')
-sm = plt.cm.ScalarMappable(cmap='Blues')
+sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
 sm.set_array(merged_cpl_geo['Prediction'])
 cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
 cbar.set_label('Prediction')
@@ -250,7 +251,7 @@ print(merged_cpl_geo2)
 # Plot the merged GeoDataFrame with filled polygons
 ax = merged_cpl_geo2.plot(column='Total Burglaries', cmap='Blues', edgecolor='black', linewidth=0.5, figsize=(10, 10))
 ax.set_title('Actual Number of Burglaries per LSOA')
-sm = plt.cm.ScalarMappable(cmap='Blues')
+sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
 sm.set_array(merged_cpl_geo2['Total Burglaries'])
 cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
 cbar.set_label('Total Burglaries')
