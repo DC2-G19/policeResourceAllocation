@@ -5,9 +5,9 @@ import xgboost as xgb
 from xgboost import XGBRegressor
 from pathFunc import dbPath, dataDir
 
-#path = 'C:/Users/20212324/DC2/database_final.db'
-#conn = sqlite3.connect(path)
-conn = sqlite3.connect(dbPath())
+path = 'C:/Users/20212324/DC2/database_final.db'
+conn = sqlite3.connect(path)
+#conn = sqlite3.connect(dbPath())
 query_burg = """SELECT * FROM table_name
 WHERE "Crime Type" = "Burglary"
 """
@@ -215,14 +215,14 @@ merged_cpl_geo = pd.merge(geo_LSOA, counts_per_LSOA, on=['LSOA code'])
 vmin = counts_per_LSOA['Prediction'].min()
 vmax = counts_per_LSOA['Prediction'].max()
 # Plot the merged GeoDataFrame with filled polygons
-ax = merged_cpl_geo.plot(column='Prediction', cmap='Blues', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+ax = merged_cpl_geo.plot(column='Prediction', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
 ## for annotations:
 #for idx, row in merged_cpl_geo.iterrows():
     #centroid = row['geometry'].centroid
     #ax.annotate( str(row['LSOA code']) + "\n" + str(row['Prediction']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
 # style the map
 ax.set_title('Predicted Number of Burglaries per LSOA')
-sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
 sm.set_array(merged_cpl_geo['Prediction'])
 cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
 cbar.set_label('Prediction')
@@ -250,9 +250,9 @@ counts_per_LSOA = new_df.groupby('LSOA code')['Total Burglaries'].sum().reset_in
 merged_cpl_geo2 = pd.merge(geo_LSOA, counts_per_LSOA, on=['LSOA code'])
 print(merged_cpl_geo2)
 # Plot the merged GeoDataFrame with filled polygons
-ax = merged_cpl_geo2.plot(column='Total Burglaries', cmap='Blues', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+ax = merged_cpl_geo2.plot(column='Total Burglaries', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
 ax.set_title('Actual Number of Burglaries per LSOA')
-sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
 sm.set_array(merged_cpl_geo2['Total Burglaries'])
 cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
 cbar.set_label('Total Burglaries')
@@ -509,3 +509,235 @@ ax2.set_ylabel('longitude')
 plt.tight_layout()
 plt.show()
 
+
+
+
+
+
+# housing
+# proportion rented
+#geo_LSOA = gpd.read_file('C:/Users/20212324/DC2/barnet_lsoa.geojson') # LSOA boundaries
+#geo_LSOA = geo_LSOA[['geometry', 'lsoa11cd']]
+#geo_LSOA.rename(columns={'lsoa11cd': 'LSOA code'}, inplace=True)
+prop_rent_per_LSOA = df_temp_merged_clean_test.groupby('LSOA code')['Proportion rented'].sum().reset_index()
+merged_prpl_geo = pd.merge(geo_LSOA, prop_rent_per_LSOA, on=['LSOA code'])
+vmin = prop_rent_per_LSOA['Proportion rented'].min()
+vmax = prop_rent_per_LSOA['Proportion rented'].max()
+sorted_data = merged_prpl_geo.sort_values('Proportion rented', ascending=False)
+top_10_lsoas = sorted_data.head(10)
+print('Sorted Proportion rented: ' + str(top_10_lsoas))
+# Plot the merged GeoDataFrame with filled polygons
+ax = merged_prpl_geo.plot(column='Proportion rented', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+# Add annotations for the top 10 LSOAs
+for idx, row in top_10_lsoas.iterrows():
+    centroid = row['geometry'].centroid
+    ax.annotate(str(row['LSOA code']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
+# style the map
+ax.set_title('Proportion rented homes per LSOA')
+sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm.set_array(merged_prpl_geo['Proportion rented'])
+cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+cbar.set_label('Proportion rented')
+plt.xlabel('latitude')
+plt.ylabel('longitude')
+plt.show()
+
+
+# Proportion of indep
+prop_rent_per_LSOA = df_temp_merged_clean_test.groupby('LSOA code')['Proportion of indep'].sum().reset_index()
+merged_pipl_geo = pd.merge(geo_LSOA, prop_rent_per_LSOA, on=['LSOA code'])
+vmin = prop_rent_per_LSOA['Proportion of indep'].min()
+vmax = prop_rent_per_LSOA['Proportion of indep'].max()
+sorted_data = merged_pipl_geo.sort_values('Proportion of indep', ascending=False)
+top_10_lsoas = sorted_data.head(10)
+print('Sorted Proportion of indep: ' + str(top_10_lsoas))
+# Plot the merged GeoDataFrame with filled polygons
+ax = merged_pipl_geo.plot(column='Proportion of indep', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+# Add annotations for the top 10 LSOAs
+for idx, row in top_10_lsoas.iterrows():
+    centroid = row['geometry'].centroid
+    ax.annotate(str(row['LSOA code']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
+# style the map
+ax.set_title('Proportion of independent homes per LSOA')
+sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm.set_array(merged_pipl_geo['Proportion of indep'])
+cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+cbar.set_label('Proportion of indep')
+plt.xlabel('latitude')
+plt.ylabel('longitude')
+plt.show()
+
+# small housing
+prop_rent_per_LSOA = df_temp_merged_clean_test.groupby('LSOA code')['Proportion small house'].sum().reset_index()
+merged_pspl_geo = pd.merge(geo_LSOA, prop_rent_per_LSOA, on=['LSOA code'])
+vmin = prop_rent_per_LSOA['Proportion small house'].min()
+vmax = prop_rent_per_LSOA['Proportion small house'].max()
+sorted_data = merged_pspl_geo.sort_values('Proportion small house', ascending=False)
+top_10_lsoas = sorted_data.head(10)
+print('Sorted small house: ' + str(top_10_lsoas))
+# Plot the merged GeoDataFrame with filled polygons
+ax = merged_pspl_geo.plot(column='Proportion small house', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+# Add annotations for the top 10 LSOAs
+for idx, row in top_10_lsoas.iterrows():
+    centroid = row['geometry'].centroid
+    ax.annotate(str(row['LSOA code']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
+# style the map
+ax.set_title('Proportion small house per LSOA')
+sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm.set_array(merged_pspl_geo['Proportion small house'])
+cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+cbar.set_label('Proportion small house')
+plt.xlabel('latitude')
+plt.ylabel('longitude')
+plt.show()
+
+# compare housing with burglary
+#geo_LSOA = gpd.read_file('C:/Users/20212324/DC2/barnet_lsoa.geojson') # LSOA boundaries
+#geo_LSOA = geo_LSOA[['geometry', 'lsoa11cd']]
+#geo_LSOA.rename(columns={'lsoa11cd': 'LSOA code'}, inplace=True)
+counts_per_LSOA = new_df.groupby('LSOA code')['Prediction'].sum().reset_index()
+merged_cpl_geo = pd.merge(geo_LSOA, counts_per_LSOA, on=['LSOA code'])
+vmin = counts_per_LSOA['Prediction'].min()
+vmax = counts_per_LSOA['Prediction'].max()
+sorted_data = merged_pspl_geo.sort_values('Proportion small house', ascending=False)
+top_10_lsoas = sorted_data.head(10)
+print('Sorted small house: ' + str(top_10_lsoas))
+# Plot the merged GeoDataFrame with filled polygons
+ax = merged_cpl_geo.plot(column='Prediction', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+# Add annotations for the top 10 LSOAs
+for idx, row in top_10_lsoas.iterrows():
+    centroid = row['geometry'].centroid
+    ax.annotate(str(row['LSOA code']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
+# style the map
+ax.set_title('Predicted Number of Burglaries per LSOA')
+sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm.set_array(merged_cpl_geo['Prediction'])
+cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+cbar.set_label('Prediction')
+plt.xlabel('latitude')
+plt.ylabel('longitude')
+plt.show()
+
+
+
+# unemployment
+import matplotlib.pyplot as plt
+import re
+#maps_directory = r'C:\Users\20212324\OneDrive - TU Eindhoven\Pictures\maps'
+#os.makedirs(maps_directory, exist_ok=True)
+mean_unempl_per_LSOA_month = df_temp_merged_clean_test.groupby(['LSOA code', 'Month'])[
+    'Unemployment'].mean().reset_index()
+unique_months = mean_unempl_per_LSOA_month['Month'].unique()
+vmin = mean_unempl_per_LSOA_month['Unemployment'].min()
+vmax = mean_unempl_per_LSOA_month['Unemployment'].max()
+# Get the bounding box that encompasses all LSOAs in Barnet
+min_longitude, min_latitude, max_longitude, max_latitude = geo_LSOA.total_bounds
+for month in unique_months:
+    month_data = mean_unempl_per_LSOA_month[mean_unempl_per_LSOA_month['Month'] == month]
+    merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
+    ax = merged_cpl_geo.plot(column='Unemployment', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+    # Set the same extent for all plots
+    ax.set_xlim(min_longitude, max_longitude)
+    ax.set_ylim(min_latitude, max_latitude)
+    # Style the map
+    ax.set_title('Mean unemployment per LSOA - {}'.format(month))
+    sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    sm.set_array(merged_cpl_geo['Unemployment'])
+    cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+    cbar.set_label('Unemployment')
+
+    plt.xlabel('longitude')
+    plt.ylabel('latitude')
+    #filename = re.sub(r'[<>:"/\\|?*]', '', str(month))
+    #plt.savefig(os.path.join(maps_directory, 'unemployment_map_{}.png'.format(filename)))
+    plt.show()
+
+# compare with burglary
+#maps_directory = r'C:\Users\20212324\OneDrive - TU Eindhoven\Pictures\maps2'
+#os.makedirs(maps_directory, exist_ok=True)
+counts_per_LSOA_month = new_df.groupby(['LSOA code', 'Month'])['Prediction'].sum().reset_index()
+unique_months = counts_per_LSOA_month['Month'].unique()
+vmin = counts_per_LSOA_month['Prediction'].min()
+vmax = counts_per_LSOA_month['Prediction'].max()
+for month in unique_months:
+    month_data = counts_per_LSOA_month[counts_per_LSOA_month['Month'] == month]
+    merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
+    ax = merged_cpl_geo.plot(column='Prediction', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+    # Set the same extent for all plots
+    ax.set_xlim(min_longitude, max_longitude)
+    ax.set_ylim(min_latitude, max_latitude)
+    ax.set_title('Predicted Number of Burglaries per LSOA - {}'.format(month))
+    sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    sm.set_array(merged_cpl_geo['Prediction'])
+    cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+    cbar.set_label('Prediction')
+    plt.xlabel('latitude')
+    plt.ylabel('longitude')
+    #filename = re.sub(r'[<>:"/\\|?*]', '', str(month))
+    #plt.savefig(os.path.join(maps_directory, 'burglary_map_{}.png'.format(filename)))
+    plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+# allocate policemen
+# take area into account
+total_predicted_burglaries = merged_cpl_geo['Prediction'].sum()
+# Calculate the total area size
+total_area_size = merged_cpl_geo['geometry'].area.sum()
+# Calculate the allocation ratio based on predicted burglaries and area size
+merged_cpl_geo['Allocation Ratio'] = (merged_cpl_geo['Prediction'] / total_predicted_burglaries) * (merged_cpl_geo['geometry'].area / total_area_size)
+merged_cpl_geo['ratio of total allocation ratio'] = merged_cpl_geo['Allocation Ratio'] / sum(merged_cpl_geo['Allocation Ratio'])*100
+print(sum(merged_cpl_geo['ratio of total allocation ratio']))
+print(merged_cpl_geo[['LSOA code', 'ratio of total allocation ratio']])
+
+#geo_LSOA = gpd.read_file('C:/Users/20212324/DC2/barnet_lsoa.geojson') # LSOA boundaries
+#geo_LSOA = geo_LSOA[['geometry', 'lsoa11cd']]
+#geo_LSOA.rename(columns={'lsoa11cd': 'LSOA code'}, inplace=True)
+vmin = merged_cpl_geo['ratio of total allocation ratio'].min()
+vmax = merged_cpl_geo['ratio of total allocation ratio'].max()
+# Plot the merged GeoDataFrame with filled polygons
+ax = merged_cpl_geo.plot(column='ratio of total allocation ratio', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+# style the map
+ax.set_title('Police allocation for Burglaries per LSOA (area corrected)')
+sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm.set_array(merged_cpl_geo['ratio of total allocation ratio'])
+cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+cbar.set_label('ratio of total allocation ratio')
+plt.xlabel('latitude')
+plt.ylabel('longitude')
+plt.show()
+
+
+# dont take area into account
+total_predicted_burglaries = merged_cpl_geo['Prediction'].sum()
+# Calculate the allocation ratio based on predicted burglaries and area size
+merged_cpl_geo['Allocation Ratio'] = (merged_cpl_geo['Prediction'] / total_predicted_burglaries)
+merged_cpl_geo['ratio of total allocation ratio'] = merged_cpl_geo['Allocation Ratio'] / sum(merged_cpl_geo['Allocation Ratio'])*100
+print(sum(merged_cpl_geo['ratio of total allocation ratio']))
+print(merged_cpl_geo[['LSOA code', 'ratio of total allocation ratio']])
+
+#geo_LSOA = gpd.read_file('C:/Users/20212324/DC2/barnet_lsoa.geojson') # LSOA boundaries
+#geo_LSOA = geo_LSOA[['geometry', 'lsoa11cd']]
+#geo_LSOA.rename(columns={'lsoa11cd': 'LSOA code'}, inplace=True)
+vmin = merged_cpl_geo['ratio of total allocation ratio'].min()
+vmax = merged_cpl_geo['ratio of total allocation ratio'].max()
+# Plot the merged GeoDataFrame with filled polygons
+ax = merged_cpl_geo.plot(column='ratio of total allocation ratio', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+# style the map
+ax.set_title('Police allocation for Burglaries per LSOA (not area corrected)')
+sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm.set_array(merged_cpl_geo['ratio of total allocation ratio'])
+cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+cbar.set_label('ratio of total allocation ratio')
+plt.xlabel('latitude')
+plt.ylabel('longitude')
+plt.show()
