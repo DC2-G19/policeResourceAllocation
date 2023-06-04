@@ -141,7 +141,9 @@ df_date_lsoa_burg_temp = df_temp_merged_clean_test[['LSOA code', 'Month', 'Total
 predictions_df = pd.DataFrame(predictions, columns=['Prediction'])
 predictions_df[['LSOA code', 'Month', 'Total Burglaries']] = df_date_lsoa_burg_temp
 print(predictions_df)
-
+predictions_df = pd.read_csv('C:/Users/20212324/DC2/predicted_df.csv')
+print('HHH')
+print(list(predictions_df.columns))
 # add ward codes
 df_w = pd.read_csv('C:/Users/20212324/DC2/Lower_Layer_Super_Output_Area_(2021)_to_Ward_(2023)_to_LAD_(2023)_Lookup_in_England_and_Wales.csv')
 # from: https://geoportal.statistics.gov.uk/search?collection=Dataset&q=Lower%20Layer%20Super%20Output%20Area%20(2021)%20to%20Ward%20(2023)
@@ -259,6 +261,8 @@ cbar.set_label('Total Burglaries')
 plt.xlabel('latitude')
 plt.ylabel('longitude')
 plt.show()
+
+
 
 
 
@@ -476,38 +480,52 @@ webbrowser.open_new_tab(map_file)
 
 # side by side actual - predicted
 # choose a month
-month_nr = input('Enter the month number (__): ')
-selected_month = '2019-' + month_nr + '-01'
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-# Predicted Number of Burglaries per LSOA
-counts_per_LSOA_month = new_df.groupby(['LSOA code', 'Month'])['Prediction'].sum().reset_index()
-vmin = counts_per_LSOA_month['Prediction'].min()
-vmax = counts_per_LSOA_month['Prediction'].max()
-month_data = counts_per_LSOA_month[counts_per_LSOA_month['Month'] == selected_month]
-merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
-merged_cpl_geo.plot(column='Prediction', cmap='blues', edgecolor='black', linewidth=0.5, ax=ax1)
-ax1.set_title('Predicted Number of Burglaries per LSOA - {}'.format(selected_month))
-sm1 = plt.cm.ScalarMappable(cmap='blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
-sm1.set_array(merged_cpl_geo['Prediction'])
-cbar1 = plt.colorbar(sm1, orientation='vertical', shrink=0.6, ax=ax1)
-cbar1.set_label('Prediction')
-ax1.set_xlabel('latitude')
-ax1.set_ylabel('longitude')
-# Actual Number of Burglaries per LSOA
-counts_per_LSOA_month2 = new_df.groupby(['LSOA code', 'Month'])['Total Burglaries'].sum().reset_index()
-month_data = counts_per_LSOA_month2[counts_per_LSOA_month2['Month'] == selected_month]
-merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
-merged_cpl_geo.plot(column='Total Burglaries', cmap='blues', edgecolor='black', linewidth=0.5, ax=ax2)
-ax2.set_title('Actual Number of Burglaries per LSOA - {}'.format(selected_month))
-sm2 = plt.cm.ScalarMappable(cmap='blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
-sm2.set_array(merged_cpl_geo['Total Burglaries'])
-cbar2 = plt.colorbar(sm2, orientation='vertical', shrink=0.6, ax=ax2)
-cbar2.set_label('Total Burglaries')
-ax2.set_xlabel('latitude')
-ax2.set_ylabel('longitude')
+#month_nr = input('Enter the month number (__): ')
+#selected_month = '2019-' + month_nr + '-01'
+import re
+months =['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+min_longitude, min_latitude, max_longitude, max_latitude = geo_LSOA.total_bounds
+maps_directory = r'C:\\Users\20212324\OneDrive - TU Eindhoven\Pictures\maps3'
+os.makedirs(maps_directory, exist_ok=True)
+for month_nr in months:
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    # Predicted Number of Burglaries per LSOA
+    counts_per_LSOA_month = new_df.groupby(['LSOA code', 'Month'])['Prediction'].sum().reset_index()
+    vmin = counts_per_LSOA_month['Prediction'].min()
+    vmax = counts_per_LSOA_month['Prediction'].max()
+    selected_month = '2019-' + month_nr + '-01'
+    month_data = counts_per_LSOA_month[counts_per_LSOA_month['Month'] == selected_month]
+    merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
+    merged_cpl_geo.plot(column='Prediction', cmap='RdBu_r', edgecolor='black', linewidth=0.5, ax=ax1)
+    ax1.set_xlim(min_longitude, max_longitude)
+    ax1.set_ylim(min_latitude, max_latitude)
+    ax1.set_title('Predicted Number of Burglaries per LSOA - {}'.format(selected_month))
+    sm1 = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    sm1.set_array(merged_cpl_geo['Prediction'])
+    cbar1 = plt.colorbar(sm1, orientation='vertical', shrink=0.6, ax=ax1)
+    cbar1.set_label('Prediction')
+    ax1.set_xlabel('latitude')
+    ax1.set_ylabel('longitude')
+    # Actual Number of Burglaries per LSOA
+    counts_per_LSOA_month2 = new_df.groupby(['LSOA code', 'Month'])['Total Burglaries'].sum().reset_index()
+    month_data = counts_per_LSOA_month2[counts_per_LSOA_month2['Month'] == selected_month]
+    merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
+    merged_cpl_geo.plot(column='Total Burglaries', cmap='RdBu_r', edgecolor='black', linewidth=0.5, ax=ax2)
+    ax2.set_xlim(min_longitude, max_longitude)
+    ax2.set_ylim(min_latitude, max_latitude)
+    ax2.set_title('Actual Number of Burglaries per LSOA - {}'.format(selected_month))
+    sm2 = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    sm2.set_array(merged_cpl_geo['Total Burglaries'])
+    cbar2 = plt.colorbar(sm2, orientation='vertical', shrink=0.6, ax=ax2)
+    cbar2.set_label('Total Burglaries')
+    ax2.set_xlabel('latitude')
+    ax2.set_ylabel('longitude')
 
-plt.tight_layout()
-plt.show()
+    plt.tight_layout()
+    filename = re.sub(r'[<>:"/\\|?*]', '', str(selected_month))
+    plt.savefig(os.path.join(maps_directory, 'unemployment_map_{}.png'.format(filename)))
+    plt.show()
+
 
 
 
@@ -516,9 +534,6 @@ plt.show()
 
 # housing
 # proportion rented
-#geo_LSOA = gpd.read_file('C:/Users/20212324/DC2/barnet_lsoa.geojson') # LSOA boundaries
-#geo_LSOA = geo_LSOA[['geometry', 'lsoa11cd']]
-#geo_LSOA.rename(columns={'lsoa11cd': 'LSOA code'}, inplace=True)
 prop_rent_per_LSOA = df_temp_merged_clean_test.groupby('LSOA code')['Proportion rented'].sum().reset_index()
 merged_prpl_geo = pd.merge(geo_LSOA, prop_rent_per_LSOA, on=['LSOA code'])
 vmin = prop_rent_per_LSOA['Proportion rented'].min()
@@ -592,9 +607,6 @@ plt.ylabel('longitude')
 plt.show()
 
 # compare housing with burglary
-#geo_LSOA = gpd.read_file('C:/Users/20212324/DC2/barnet_lsoa.geojson') # LSOA boundaries
-#geo_LSOA = geo_LSOA[['geometry', 'lsoa11cd']]
-#geo_LSOA.rename(columns={'lsoa11cd': 'LSOA code'}, inplace=True)
 counts_per_LSOA = new_df.groupby('LSOA code')['Prediction'].sum().reset_index()
 merged_cpl_geo = pd.merge(geo_LSOA, counts_per_LSOA, on=['LSOA code'])
 vmin = counts_per_LSOA['Prediction'].min()
@@ -623,8 +635,8 @@ plt.show()
 # unemployment
 import matplotlib.pyplot as plt
 import re
-#maps_directory = r'C:\Users\20212324\OneDrive - TU Eindhoven\Pictures\maps'
-#os.makedirs(maps_directory, exist_ok=True)
+maps_directory = r'C:\\Users\20212324\OneDrive - TU Eindhoven\Pictures\maps'
+os.makedirs(maps_directory, exist_ok=True)
 mean_unempl_per_LSOA_month = df_temp_merged_clean_test.groupby(['LSOA code', 'Month'])[
     'Unemployment'].mean().reset_index()
 unique_months = mean_unempl_per_LSOA_month['Month'].unique()
@@ -648,13 +660,13 @@ for month in unique_months:
 
     plt.xlabel('longitude')
     plt.ylabel('latitude')
-    #filename = re.sub(r'[<>:"/\\|?*]', '', str(month))
-    #plt.savefig(os.path.join(maps_directory, 'unemployment_map_{}.png'.format(filename)))
+    filename = re.sub(r'[<>:"/\\|?*]', '', str(month))
+    plt.savefig(os.path.join(maps_directory, 'unemployment_map_{}.png'.format(filename)))
     plt.show()
 
 # compare with burglary
-#maps_directory = r'C:\Users\20212324\OneDrive - TU Eindhoven\Pictures\maps2'
-#os.makedirs(maps_directory, exist_ok=True)
+maps_directory = r'C:\\Users\20212324\OneDrive - TU Eindhoven\Pictures\maps2'
+os.makedirs(maps_directory, exist_ok=True)
 counts_per_LSOA_month = new_df.groupby(['LSOA code', 'Month'])['Prediction'].sum().reset_index()
 unique_months = counts_per_LSOA_month['Month'].unique()
 vmin = counts_per_LSOA_month['Prediction'].min()
@@ -673,11 +685,9 @@ for month in unique_months:
     cbar.set_label('Prediction')
     plt.xlabel('latitude')
     plt.ylabel('longitude')
-    #filename = re.sub(r'[<>:"/\\|?*]', '', str(month))
-    #plt.savefig(os.path.join(maps_directory, 'burglary_map_{}.png'.format(filename)))
+    filename = re.sub(r'[<>:"/\\|?*]', '', str(month))
+    plt.savefig(os.path.join(maps_directory, 'burglary_map_{}.png'.format(filename)))
     plt.show()
-
-
 
 
 
@@ -690,6 +700,8 @@ for month in unique_months:
 
 # allocate policemen
 # take area into account
+maps_directory = r'C:\\Users\20212324\OneDrive - TU Eindhoven\Pictures\mapsp'
+os.makedirs(maps_directory, exist_ok=True)
 total_predicted_burglaries = merged_cpl_geo['Prediction'].sum()
 # Calculate the total area size
 total_area_size = merged_cpl_geo['geometry'].area.sum()
@@ -699,9 +711,7 @@ merged_cpl_geo['ratio of total allocation ratio'] = merged_cpl_geo['Allocation R
 print(sum(merged_cpl_geo['ratio of total allocation ratio']))
 print(merged_cpl_geo[['LSOA code', 'ratio of total allocation ratio']])
 
-#geo_LSOA = gpd.read_file('C:/Users/20212324/DC2/barnet_lsoa.geojson') # LSOA boundaries
-#geo_LSOA = geo_LSOA[['geometry', 'lsoa11cd']]
-#geo_LSOA.rename(columns={'lsoa11cd': 'LSOA code'}, inplace=True)
+
 vmin = merged_cpl_geo['ratio of total allocation ratio'].min()
 vmax = merged_cpl_geo['ratio of total allocation ratio'].max()
 # Plot the merged GeoDataFrame with filled polygons
@@ -714,6 +724,8 @@ cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
 cbar.set_label('ratio of total allocation ratio')
 plt.xlabel('latitude')
 plt.ylabel('longitude')
+filename = 'all with ar'
+plt.savefig(os.path.join(maps_directory, 'burglary_map_{}.png'.format(filename)))
 plt.show()
 
 
@@ -725,9 +737,7 @@ merged_cpl_geo['ratio of total allocation ratio'] = merged_cpl_geo['Allocation R
 print(sum(merged_cpl_geo['ratio of total allocation ratio']))
 print(merged_cpl_geo[['LSOA code', 'ratio of total allocation ratio']])
 
-#geo_LSOA = gpd.read_file('C:/Users/20212324/DC2/barnet_lsoa.geojson') # LSOA boundaries
-#geo_LSOA = geo_LSOA[['geometry', 'lsoa11cd']]
-#geo_LSOA.rename(columns={'lsoa11cd': 'LSOA code'}, inplace=True)
+
 vmin = merged_cpl_geo['ratio of total allocation ratio'].min()
 vmax = merged_cpl_geo['ratio of total allocation ratio'].max()
 # Plot the merged GeoDataFrame with filled polygons
@@ -740,4 +750,6 @@ cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
 cbar.set_label('ratio of total allocation ratio')
 plt.xlabel('latitude')
 plt.ylabel('longitude')
+filename = 'all no ar'
+plt.savefig(os.path.join(maps_directory, 'burglary_map_{}.png'.format(filename)))
 plt.show()
