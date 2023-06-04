@@ -4,7 +4,9 @@ import xgboost as xgb
 from pathlib import Path
 import sqlite3
 import pandas as pd
-from typing import Any
+from typing import Any, Tuple
+import numpy as np
+
 
 
 def dbPath() -> Path:
@@ -21,7 +23,7 @@ def modelPath(lsoaCode:str) ->Path:
     return modelPath
 
 
-def makeSunlightPrediction(date: datetime.datetime)-> tuple[Any, Any]:
+def makeSunlightPrediction(date: datetime.datetime)-> Tuple[Any, Any]:
 
     conn = sqlite3.connect(dbPath())
     sunlightDF= pd.read_sql("SELECT * FROM sunlight", conn)
@@ -50,7 +52,8 @@ def makeSunlightPrediction(date: datetime.datetime)-> tuple[Any, Any]:
     # return corr[0], pred[0]
     return pred[0]
 
-def makeUnemployementPrediction(date: datetime.datetime, lsoaCode :str)-> float:
+
+def makeAllFeatures()-> Tuple[pd.DataFrame, list]:
     conn = sqlite3.connect(dbPath())
     query_lsoa_codes = "SELECT geogcode FROM lsoa_code_to_name"
     lsoa_codes = pd.read_sql(query_lsoa_codes, conn)
@@ -68,21 +71,79 @@ def makeUnemployementPrediction(date: datetime.datetime, lsoaCode :str)-> float:
 
     for row in tqdm(unemployement.index):
         allFeatures[unemployement["geogcode"][row]][unemployement["date"][row]] = unemployement["value"][row]
-
+    
+    shiftColumnList = []
     for code in tqdm(lsoa_code_list):
+        tempDF = pd.DataFrame(columns=[f"{code}_shift_{i+1}" for i in range(12)])
         for i in range(12):
-            allFeatures[f"{code}_shift_{i+1}"] = allFeatures[f"{code}"].shift(i+1)
-
+            # allFeatures[f"{code}_shift_{i+1}"] = allFeatures[f"{code}"].shift(i+1)
+            tempDF[f"{code}_shift_{i+1}"] = allFeatures[code].shift(i+1)
+        shiftColumnList.append(tempDF.copy())
+    allShifts = pd.concat(shiftColumnList, axis=1)
+    # return allShifts, 0
+    allFeatures = pd.concat([allFeatures, allShifts], axis=1)
     allFeatures = allFeatures.dropna()
-    # code_out_shift = allFeatures[lsoa_code_list].copy()
+    conn.close()
+    return allFeatures, lsoa_code_list
+
+
+
+def makeFirstUnemployementPrediction(allFeatures: pd.DataFrame,lsoa_code_list: list, date)-> pd.DataFrame:
     code_with_shift = allFeatures.drop(lsoa_code_list, axis=True).copy()
-    # corr = code_out_shift[code_out_shift.index == date][lsoaCode]
-    vals = code_with_shift[code_with_shift.index == date]
-    model = xgb.XGBRegressor()
-    model.load_model(modelPath(lsoaCode))
-    prediction = model.predict(vals.values)
-    # return corr.values[0], prediction[0]
-    return prediction[0]
+    vals = code_with_shift[code_with_shift.index == datetime.datetime.fromtimestamp(date)].copy()
+    predDF = pd.DataFrame(index=[date], columns=lsoa_code_list)    
+    for lsoaCode in tqdm(lsoa_code_list):
+        model = xgb.XGBRegressor()
+        model.load_model(modelPath(lsoaCode))
+        predDF[lsoaCode][date] = model.predict(vals.values)
 
+    return predDF
 
+def makeUnemployementPrediction(x_arr: np.array,lsoa_code_list: list)-> np.array:
+    predArray = np.empty(len(lsoa_code_list))
+    for i, lsoaCode in tqdm(enumerate(lsoa_code_list)):
+        model = xgb.XGBRegressor()
+        model.load_model(modelPath(lsoaCode))
+        predArray[i] = model.predict(x_arr)
+    return predArray
 
+def get_unemployement_predictions_for_range(start: datetime.datetime, end: datetime.datetime, allFeatures: pd.DataFrame, lsoa_code_list: list)-> pd.DataFrame:
+    predDict = {}
+    indices = list(iter(allFeatures.index))
+    tail = allFeatures[allFeatures.index == indices[-1]]
+    vals = tail.to_numpy()
+    vals = vals[0]
+    print(type(vals))
+    first = True
+    for month in pd.date_range(start, end, freq="M"):
+        # print(type(month))
+        if first:
+            pred = makeFirstUnemployementPrediction(allFeatures, lsoa_code_list, month)
+            pred_vals = pred.values
+            predDict[month] = pred_vals
+            print(type(vals))
+            vals = np.concatenate(pred_vals, vals[0][:-len(lsoa_code_list)])
+            first = False
+        else:
+            predArray = makeUnemployementPrediction(vals, lsoa_code_list)
+            predDict[month] = predArray
+            vals = np.concatenate(predArray, vals[:-len(lsoa_code_list)])
+            first = False
+    # print(np.shape(end))
+    print("it worked")
+
+def main():
+    allFeatures, lsoa_code_list= makeAllFeatures()
+    # print(allFeatures.head())
+    # predRow = makeUnemployementPrediction(allFeatures, lsoa_code_list, datetime.datetime(2015,10,1))
+    # print(predRow.head())
+    get_unemployement_predictions_for_range(
+            start=datetime.datetime(2015,10,1),
+            end=datetime.datetime(2016,3,1),
+            allFeatures=allFeatures,
+            lsoa_code_list=lsoa_code_list
+            )
+if __name__ == "__main__":
+    main()
+
+#%%
