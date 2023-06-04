@@ -3,12 +3,14 @@ import os
 import shutil
 import pandas as pd
 import sqlite3
+from pathlib import Path
+from pathFunc import dbPath, dataDir
 
 
-def data_to_df(relative_path):
+def data_to_df(file):
     #Filters out the required excel files (makes a copy). Make sure you are in the correct dir where your data is stored
-    dataset_dir = relative_path  # replace with the path to your dataset folder
-    filtered_dir = dataset_dir+"CLEANED"  # replace with the path to the folder where you want to store the filtered data
+    dataset_dir = dataDir().joinpath(file)  # replace with the path to your dataset folder
+    filtered_dir = str(dataset_dir) + "CLEANED"  # replace with the path to the folder where you want to store the filtered data
     if not os.path.exists(filtered_dir):
         os.makedirs(filtered_dir)
 
@@ -31,7 +33,7 @@ def data_to_df(relative_path):
             df = pd.read_csv(file_path)
             df_list.append(df)
     combined_df_temp = pd.concat(df_list, ignore_index=True)
-    combined_df = combined_df_temp.drop(['Context', 'Last outcome category', 'Crime ID' ], axis=1).dropna()
+    combined_df = combined_df_temp.drop(['Context', 'Last outcome category', 'Crime ID' ], axis=1)
     return combined_df
 
 def df_to_SQLdb(path, df):
@@ -51,5 +53,4 @@ def raw_data_to_file(save_path, data_relative_path):
     df=data_to_df(data_relative_path)
     df_to_csv(save_path, df)
     
-raw_data_to_file('C:\\Users\\shash\\OneDrive - TU Eindhoven\\Shashank Prabhu University\\Year 2\\Year 2 Q4\\Data Challenge 2\\Git DC2\\Data\\conc_clean.csv', "C:\\Users\\shash\\OneDrive - TU Eindhoven\\Shashank Prabhu University\\Year 2\\Year 2 Q4\\Data Challenge 2\\Git DC2\\Data\\All data")
-#add the abs path to where you want the DB to be (with the file name) as well as the folder with all the excel files as the inputs
+raw_data_to_file('cleaned.csv', '2023-04')
