@@ -142,6 +142,7 @@ predictions_df = pd.DataFrame(predictions, columns=['Prediction'])
 predictions_df[['LSOA code', 'Month', 'Total Burglaries']] = df_date_lsoa_burg_temp
 print(predictions_df)
 predictions_df = pd.read_csv('C:/Users/20212324/DC2/predicted_df.csv')
+df_temp_merged_clean_test = pd.read_csv('C:/Users/20212324/DC2/df_temp_merged_clean_test.csv')
 print('HHH')
 print(list(predictions_df.columns))
 # add ward codes
@@ -186,14 +187,14 @@ merged_cpw_geo = pd.merge(combined_gdf, cpw, on=['Ward code'])
 # Convert LineString to Polygon
 merged_cpw_geo['geometry'] = merged_cpw_geo['geometry'].apply(lambda x: Polygon(x.coords) if x.geom_type == 'LineString' else x)
 # Plot the merged GeoDataFrame with filled polygons
-ax = merged_cpw_geo.plot(column='Prediction', cmap='Blues', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+ax = merged_cpw_geo.plot(column='Prediction', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
 # for annotations:
 for idx, row in merged_cpw_geo.iterrows():
     centroid = row['geometry'].centroid
     ax.annotate( str(row['Ward code']) + "\n" + str(round(row['Prediction'], 1)), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
 # style the map
 ax.set_title('Predicted Number of Burglaries per Ward')
-sm = plt.cm.ScalarMappable(cmap='Blues')
+sm = plt.cm.ScalarMappable(cmap='RdBu_r')
 sm.set_array(merged_cpw_geo['Prediction'])
 cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
 cbar.set_label('Prediction')
@@ -265,7 +266,7 @@ plt.show()
 
 
 
-
+"""
 # interactive map with LSOA and ward boundaries as different layers
 import folium
 import webbrowser
@@ -378,14 +379,14 @@ vmax = counts_per_LSOA_month['Prediction'].max()
 for month in unique_months:
     month_data = counts_per_LSOA_month[counts_per_LSOA_month['Month'] == month]
     merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
-    ax = merged_cpl_geo.plot(column='Prediction', cmap='Blues', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+    ax = merged_cpl_geo.plot(column='Prediction', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
     # Add annotations for each LSOA
     #for idx, row in merged_cpl_geo.iterrows():
     #    centroid = row['geometry'].centroid
     #    ax.annotate(str(row['LSOA code']) + "\n" + str(round(row['Prediction'], 1)), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
     # Style the map
     ax.set_title('Predicted Number of Burglaries per LSOA - {}'.format(month))
-    sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
     sm.set_array(merged_cpl_geo['Prediction'])
     cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
     cbar.set_label('Prediction')
@@ -405,14 +406,14 @@ vmax = counts_per_LSOA_month['Prediction'].max()
 for month in unique_months2:
     month_data = counts_per_LSOA_month2[counts_per_LSOA_month2['Month'] == month]
     merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
-    ax = merged_cpl_geo.plot(column='Total Burglaries', cmap='Blues', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+    ax = merged_cpl_geo.plot(column='Total Burglaries', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
     # Add annotations for each LSOA
     #for idx, row in merged_cpl_geo.iterrows():
     #    centroid = row['geometry'].centroid
     #    ax.annotate(str(row['LSOA code']) + "\n" + str(round(row['Total Burglaries'], 1)), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
     # Style the map
     ax.set_title('Actual Number of Burglaries per LSOA - {}'.format(month))
-    sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
     sm.set_array(merged_cpl_geo['Total Burglaries'])
     cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
     cbar.set_label('Total Burglaries')
@@ -478,6 +479,7 @@ m.save(map_file)
 webbrowser.open_new_tab(map_file)
 
 
+
 # side by side actual - predicted
 # choose a month
 #month_nr = input('Enter the month number (__): ')
@@ -523,8 +525,10 @@ for month_nr in months:
 
     plt.tight_layout()
     filename = re.sub(r'[<>:"/\\|?*]', '', str(selected_month))
-    plt.savefig(os.path.join(maps_directory, 'unemployment_map_{}.png'.format(filename)))
+    plt.savefig(os.path.join(maps_directory, 'burglary_map_{}.png'.format(filename)))
     plt.show()
+
+
 
 
 
@@ -556,6 +560,7 @@ cbar.set_label('Proportion rented')
 plt.xlabel('latitude')
 plt.ylabel('longitude')
 plt.show()
+
 
 
 # Proportion of indep
@@ -606,26 +611,28 @@ plt.xlabel('latitude')
 plt.ylabel('longitude')
 plt.show()
 
+
+
 # compare housing with burglary
-counts_per_LSOA = new_df.groupby('LSOA code')['Prediction'].sum().reset_index()
+counts_per_LSOA = new_df.groupby('LSOA code')['Total Burglaries'].sum().reset_index()
 merged_cpl_geo = pd.merge(geo_LSOA, counts_per_LSOA, on=['LSOA code'])
-vmin = counts_per_LSOA['Prediction'].min()
-vmax = counts_per_LSOA['Prediction'].max()
-sorted_data = merged_pspl_geo.sort_values('Proportion small house', ascending=False)
+vmin = counts_per_LSOA['Total Burglaries'].min()
+vmax = counts_per_LSOA['Total Burglaries'].max()
+sorted_data = merged_cpl_geo.sort_values('Total Burglaries', ascending=False)
 top_10_lsoas = sorted_data.head(10)
 print('Sorted small house: ' + str(top_10_lsoas))
 # Plot the merged GeoDataFrame with filled polygons
-ax = merged_cpl_geo.plot(column='Prediction', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+ax = merged_cpl_geo.plot(column='Total Burglaries', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
 # Add annotations for the top 10 LSOAs
 for idx, row in top_10_lsoas.iterrows():
     centroid = row['geometry'].centroid
     ax.annotate(str(row['LSOA code']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
 # style the map
-ax.set_title('Predicted Number of Burglaries per LSOA')
+ax.set_title('Actual Number of Burglaries per LSOA')
 sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
-sm.set_array(merged_cpl_geo['Prediction'])
+sm.set_array(merged_cpl_geo['Total Burglaries'])
 cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
-cbar.set_label('Prediction')
+cbar.set_label('Total Burglaries')
 plt.xlabel('latitude')
 plt.ylabel('longitude')
 plt.show()
@@ -697,16 +704,19 @@ for month in unique_months:
 
 
 
+"""
 
 # allocate policemen
 # take area into account
+print("*****")
+print(merged_cpl_geo, merged_cpl_geo.columns)
 maps_directory = r'C:\\Users\20212324\OneDrive - TU Eindhoven\Pictures\mapsp'
 os.makedirs(maps_directory, exist_ok=True)
 total_predicted_burglaries = merged_cpl_geo['Prediction'].sum()
 # Calculate the total area size
 total_area_size = merged_cpl_geo['geometry'].area.sum()
 # Calculate the allocation ratio based on predicted burglaries and area size
-merged_cpl_geo['Allocation Ratio'] = (merged_cpl_geo['Prediction'] / total_predicted_burglaries) * (merged_cpl_geo['geometry'].area / total_area_size)
+merged_cpl_geo['Allocation Ratio'] = (merged_cpl_geo['Prediction'] / total_predicted_burglaries) * ((total_area_size - merged_cpl_geo['geometry'].area) / total_area_size)
 merged_cpl_geo['ratio of total allocation ratio'] = merged_cpl_geo['Allocation Ratio'] / sum(merged_cpl_geo['Allocation Ratio'])*100
 print(sum(merged_cpl_geo['ratio of total allocation ratio']))
 print(merged_cpl_geo[['LSOA code', 'ratio of total allocation ratio']])
@@ -721,7 +731,7 @@ ax.set_title('Police allocation for Burglaries per LSOA (area corrected)')
 sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
 sm.set_array(merged_cpl_geo['ratio of total allocation ratio'])
 cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
-cbar.set_label('ratio of total allocation ratio')
+cbar.set_label('percentage of police officers')
 plt.xlabel('latitude')
 plt.ylabel('longitude')
 filename = 'all with ar'
@@ -747,9 +757,132 @@ ax.set_title('Police allocation for Burglaries per LSOA (not area corrected)')
 sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
 sm.set_array(merged_cpl_geo['ratio of total allocation ratio'])
 cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
-cbar.set_label('ratio of total allocation ratio')
+cbar.set_label('percentage of police officers')
 plt.xlabel('latitude')
 plt.ylabel('longitude')
 filename = 'all no ar'
 plt.savefig(os.path.join(maps_directory, 'burglary_map_{}.png'.format(filename)))
 plt.show()
+
+
+# police allocation per month (area corrected)
+import re
+maps_directory = r'C:\\Users\20212324\OneDrive - TU Eindhoven\Pictures\mapsp'
+os.makedirs(maps_directory, exist_ok=True)
+counts_per_LSOA_month = new_df.groupby(['LSOA code', 'Month'])['Prediction'].sum().reset_index()
+unique_months = counts_per_LSOA_month['Month'].unique()
+min_longitude, min_latitude, max_longitude, max_latitude = geo_LSOA.total_bounds
+for month in unique_months:
+    month_data = counts_per_LSOA_month[counts_per_LSOA_month['Month'] == month]
+    merged_cpl_geo = pd.merge(geo_LSOA, month_data, on='LSOA code')
+    total_predicted_burglaries = merged_cpl_geo['Prediction'].sum()
+    total_area_size = merged_cpl_geo['geometry'].area.sum()
+    merged_cpl_geo['Allocation Ratio'] = (merged_cpl_geo['Prediction'] / total_predicted_burglaries) * (
+                (total_area_size - merged_cpl_geo['geometry'].area) / total_area_size)
+    merged_cpl_geo['ratio of total allocation ratio'] = merged_cpl_geo['Allocation Ratio'] / sum(
+        merged_cpl_geo['Allocation Ratio']) * 100
+
+    ax = merged_cpl_geo.plot(column='ratio of total allocation ratio', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+    # Set the same extent for all plots
+    ax.set_xlim(min_longitude, max_longitude)
+    ax.set_ylim(min_latitude, max_latitude)
+    ax.set_title('Police officer allocation per LSOA - {}'.format(month))
+    sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    sm.set_array(merged_cpl_geo['ratio of total allocation ratio'])
+    cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+    cbar.set_label('ratio of total allocation ratio')
+    plt.xlabel('latitude')
+    plt.ylabel('longitude')
+    filename = re.sub(r'[<>:"/\\|?*]', '', str(month))
+    plt.savefig(os.path.join(maps_directory, 'allocation_map_{}.png'.format(filename)))
+    plt.show()
+
+
+# interacting map lsoa, ward, allocation
+import folium
+import webbrowser
+import pandas as pd
+from branca.colormap import linear
+import branca.colormap as cm
+from matplotlib import cm
+cpw = new_df.groupby(['Ward code', 'Month'])['Prediction'].sum().reset_index()
+merged_cpw_geo = pd.merge(combined_gdf, cpw, on=['Ward code'])
+merged_cpw_geo['geometry'] = merged_cpw_geo['geometry'].apply(lambda x: Polygon(x.coords) if x.geom_type == 'LineString' else x)
+merged_data = merged_cpw_geo[['geometry', 'Prediction', 'Ward code', 'Month']]
+counts_per_LSOA_month = new_df.groupby(['LSOA code', 'Month'])['Prediction'].sum().reset_index()
+merged_cpl_geo = pd.merge(geo_LSOA, counts_per_LSOA_month, on=['LSOA code'])
+total_predicted_burglaries = merged_cpl_geo['Prediction'].sum()
+total_area_size = merged_cpl_geo['geometry'].area.sum()
+merged_cpl_geo['Allocation Ratio'] = (merged_cpl_geo['Prediction'] / total_predicted_burglaries) * ((total_area_size - merged_cpl_geo['geometry'].area) / total_area_size)
+merged_cpl_geo['ratio of total allocation ratio'] = merged_cpl_geo['Allocation Ratio'] / sum(merged_cpl_geo['Allocation Ratio'])*100
+
+merged_data2 = merged_cpl_geo[['geometry', 'Prediction', 'LSOA code', 'Month']]
+merged_data3 = merged_cpl_geo[['geometry', 'LSOA code', 'ratio of total allocation ratio', 'Month']]
+month_nr = input('Enter the month number (__): ')
+selected_month = '2019-' + month_nr + '-01'
+# Filter the data for the selected month on both Ward and LSOA layers
+merged_data_selected_month_ward = merged_data[merged_data['Month'] == selected_month]
+merged_data_selected_month_lsoa = merged_data2[merged_data2['Month'] == selected_month]
+merged_data_selected_month_lsoa_ratio = merged_data3[merged_data3['Month'] == selected_month]
+# color maps
+ward_min_pred = merged_data_selected_month_ward['Prediction'].min()
+ward_max_pred = merged_data_selected_month_ward['Prediction'].max()
+lsoa_min_pred = merged_data_selected_month_lsoa['Prediction'].min()
+lsoa_max_pred = merged_data_selected_month_lsoa['Prediction'].max()
+ratio_min_pred = merged_data_selected_month_lsoa_ratio['ratio of total allocation ratio'].min()
+ratio_max_pred = merged_data_selected_month_lsoa_ratio['ratio of total allocation ratio'].max()
+print(dir(linear))
+ward_count_colormap = linear.PuOr_11.scale(ward_min_pred, ward_max_pred)
+lsoa_count_colormap = linear.PuOr_11.scale(lsoa_min_pred, lsoa_max_pred)
+ratio_count_colormap = linear.PuOr_11.scale(ratio_min_pred, ratio_max_pred)
+# Create the interactive map
+m = folium.Map(
+    location=[merged_cpw_geo['geometry'][0].centroid.y, merged_cpw_geo['geometry'][0].centroid.x],
+    zoom_start=11
+)
+# Add the Ward boundaries to the map for the selected month
+folium.GeoJson(
+    merged_data_selected_month_ward.drop(columns=['Month']),
+    name='Ward Boundaries',
+    style_function=lambda feature: {
+        'fillColor': ward_count_colormap(feature['properties']['Prediction']),
+        'color': 'black',
+        'weight': 0.5,
+        'fillOpacity': 0.7,
+    },
+    tooltip=folium.GeoJsonTooltip(fields=['Ward code', 'Prediction'], labels=True, sticky=True)
+).add_to(m)
+# Add the LSOA boundaries to the map for the selected month
+folium.GeoJson(
+    merged_data_selected_month_lsoa.drop(columns=['Month']),
+    name='LSOA Boundaries',
+    style_function=lambda feature: {
+        'fillColor': lsoa_count_colormap(feature['properties']['Prediction']),
+        'color': 'black',
+        'weight': 0.5,
+        'fillOpacity': 0.7,
+    },
+    tooltip=folium.GeoJsonTooltip(fields=['LSOA code', 'Prediction'], labels=True, sticky=True)
+).add_to(m)
+# Add the police ratio for the selected month
+folium.GeoJson(
+    merged_data_selected_month_lsoa_ratio.drop(columns=['Month']),
+    name='Ratio Police Allocation',
+    style_function=lambda feature: {
+        'fillColor': ratio_count_colormap(feature['properties']['ratio of total allocation ratio']),
+        'color': 'black',
+        'weight': 0.5,
+        'fillOpacity': 0.7,
+    },
+    tooltip=folium.GeoJsonTooltip(fields=['LSOA code', 'ratio of total allocation ratio'], labels=True, sticky=True)
+).add_to(m)
+ward_count_colormap.caption = 'Burglaries per Ward Predictions'
+ward_count_colormap.add_to(m)
+lsoa_count_colormap.caption = 'Burglaries per LSOA Predictions'
+lsoa_count_colormap.add_to(m)
+ratio_count_colormap.caption = 'Ratio Police Allocation Predictions'
+ratio_count_colormap.add_to(m)
+folium.LayerControl().add_to(m)
+map_file = 'interactive_map_ratio.html'
+m.save(map_file)
+webbrowser.open_new_tab(map_file)
