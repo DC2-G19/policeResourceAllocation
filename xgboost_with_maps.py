@@ -140,18 +140,15 @@ metrics_df = pd.DataFrame(metrics)
 df_date_lsoa_burg_temp = df_temp_merged_clean_test[['LSOA code', 'Month', 'Total Burglaries']].reset_index(drop=True, inplace=False)
 predictions_df = pd.DataFrame(predictions, columns=['Prediction'])
 predictions_df[['LSOA code', 'Month', 'Total Burglaries']] = df_date_lsoa_burg_temp
-print(predictions_df)
 predictions_df = pd.read_csv('C:/Users/20212324/DC2/predicted_df.csv')
 df_temp_merged_clean_test = pd.read_csv('C:/Users/20212324/DC2/df_temp_merged_clean_test.csv')
-print('HHH')
-print(list(predictions_df.columns))
 # add ward codes
 df_w = pd.read_csv('C:/Users/20212324/DC2/Lower_Layer_Super_Output_Area_(2021)_to_Ward_(2023)_to_LAD_(2023)_Lookup_in_England_and_Wales.csv')
 # from: https://geoportal.statistics.gov.uk/search?collection=Dataset&q=Lower%20Layer%20Super%20Output%20Area%20(2021)%20to%20Ward%20(2023)
 df_ward_LSOA = pd.DataFrame()
 df_ward_LSOA[['LSOA code', 'Ward code']] = df_w[['LSOA21CD', 'WD23CD']]
 new_df = pd.merge(predictions_df, df_ward_LSOA, on='LSOA code', how='left')
-print(new_df)
+
 
 
 
@@ -233,7 +230,7 @@ plt.xlabel('latitude')
 plt.ylabel('longitude')
 plt.show()
 
-
+"""
 # barplot counts per ward
 cpw_sorted = cpw.sort_values(by='Prediction', ascending=False)
 plt.figure(figsize=(10, 6))
@@ -251,7 +248,6 @@ plt.show()
 # prepare the data
 counts_per_LSOA = new_df.groupby('LSOA code')['Total Burglaries'].sum().reset_index()
 merged_cpl_geo2 = pd.merge(geo_LSOA, counts_per_LSOA, on=['LSOA code'])
-print(merged_cpl_geo2)
 # Plot the merged GeoDataFrame with filled polygons
 ax = merged_cpl_geo2.plot(column='Total Burglaries', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
 ax.set_title('Actual Number of Burglaries per LSOA')
@@ -266,7 +262,7 @@ plt.show()
 
 
 
-"""
+
 # interactive map with LSOA and ward boundaries as different layers
 import folium
 import webbrowser
@@ -548,9 +544,9 @@ print('Sorted Proportion rented: ' + str(top_10_lsoas))
 # Plot the merged GeoDataFrame with filled polygons
 ax = merged_prpl_geo.plot(column='Proportion rented', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
 # Add annotations for the top 10 LSOAs
-for idx, row in top_10_lsoas.iterrows():
-    centroid = row['geometry'].centroid
-    ax.annotate(str(row['LSOA code']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
+#for idx, row in top_10_lsoas.iterrows():
+#    centroid = row['geometry'].centroid
+#    ax.annotate(str(row['LSOA code']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
 # style the map
 ax.set_title('Proportion rented homes per LSOA')
 sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
@@ -561,6 +557,23 @@ plt.xlabel('latitude')
 plt.ylabel('longitude')
 plt.show()
 
+# only plot top 10
+top_10_boundaries = gpd.GeoDataFrame(top_10_lsoas, geometry='geometry')
+fig, ax = plt.subplots(figsize=(10, 10))
+merged_prpl_geo.plot(column='Proportion rented', cmap='RdBu_r', edgecolor='black', linewidth=0.5, ax=ax)
+top_10_boundaries.boundary.plot(ax=ax, color=None, edgecolor='yellow', linewidth=1.5)
+ax.set_title('Top 10 Proportion rented homes per LSOA')
+sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm.set_array(merged_prpl_geo['Proportion rented'])
+cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+cbar.set_label('Proportion rented')
+plt.xlabel('latitude')
+plt.ylabel('longitude')
+plt.show()
+
+
+
+
 
 
 # Proportion of indep
@@ -569,23 +582,39 @@ merged_pipl_geo = pd.merge(geo_LSOA, prop_rent_per_LSOA, on=['LSOA code'])
 vmin = prop_rent_per_LSOA['Proportion of indep'].min()
 vmax = prop_rent_per_LSOA['Proportion of indep'].max()
 sorted_data = merged_pipl_geo.sort_values('Proportion of indep', ascending=False)
-top_10_lsoas = sorted_data.head(10)
+top_10_lsoas = sorted_data.tail(10)
 print('Sorted Proportion of indep: ' + str(top_10_lsoas))
 # Plot the merged GeoDataFrame with filled polygons
 ax = merged_pipl_geo.plot(column='Proportion of indep', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
 # Add annotations for the top 10 LSOAs
-for idx, row in top_10_lsoas.iterrows():
-    centroid = row['geometry'].centroid
-    ax.annotate(str(row['LSOA code']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
+#for idx, row in top_10_lsoas.iterrows():
+#    centroid = row['geometry'].centroid
+#    ax.annotate(str(row['LSOA code']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
 # style the map
-ax.set_title('Proportion of independent homes per LSOA')
+ax.set_title('Proportion of Independent Homes per LSOA')
 sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
 sm.set_array(merged_pipl_geo['Proportion of indep'])
 cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
-cbar.set_label('Proportion of indep')
+cbar.set_label('Proportion of independent')
 plt.xlabel('latitude')
 plt.ylabel('longitude')
 plt.show()
+
+
+# only plot top 10
+top_10_boundaries = gpd.GeoDataFrame(top_10_lsoas, geometry='geometry')
+fig, ax = plt.subplots(figsize=(10, 10))
+merged_pipl_geo.plot(column='Proportion of indep', cmap='RdBu_r', edgecolor='black', linewidth=0.5, ax=ax)
+top_10_boundaries.boundary.plot(ax=ax, color=None, edgecolor='yellow', linewidth=1.5)
+ax.set_title('Bottom 10 Proportion of Independent Homes per LSOA')
+sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm.set_array(merged_pipl_geo['Proportion of indep'])
+cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+cbar.set_label('Proportion of Independent')
+plt.xlabel('latitude')
+plt.ylabel('longitude')
+plt.show()
+
 
 # small housing
 prop_rent_per_LSOA = df_temp_merged_clean_test.groupby('LSOA code')['Proportion small house'].sum().reset_index()
@@ -624,11 +653,25 @@ print('Sorted small house: ' + str(top_10_lsoas))
 # Plot the merged GeoDataFrame with filled polygons
 ax = merged_cpl_geo.plot(column='Total Burglaries', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
 # Add annotations for the top 10 LSOAs
-for idx, row in top_10_lsoas.iterrows():
-    centroid = row['geometry'].centroid
-    ax.annotate(str(row['LSOA code']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
+#for idx, row in top_10_lsoas.iterrows():
+#    centroid = row['geometry'].centroid
+#    ax.annotate(str(row['LSOA code']), xy=(centroid.x, centroid.y), xytext=(-20, 0), textcoords="offset points", fontsize=8)
 # style the map
 ax.set_title('Actual Number of Burglaries per LSOA')
+sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm.set_array(merged_cpl_geo['Total Burglaries'])
+cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+cbar.set_label('Total Burglaries')
+plt.xlabel('latitude')
+plt.ylabel('longitude')
+plt.show()
+
+# only plot top 10
+top_10_boundaries = gpd.GeoDataFrame(top_10_lsoas, geometry='geometry')
+fig, ax = plt.subplots(figsize=(10, 10))
+merged_cpl_geo.plot(column='Total Burglaries', cmap='RdBu_r', edgecolor='black', linewidth=0.5, ax=ax)
+top_10_boundaries.boundary.plot(ax=ax, color=None, edgecolor='yellow', linewidth=1.5)
+ax.set_title('Top 10 Total Burglaries per LSOA')
 sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
 sm.set_array(merged_cpl_geo['Total Burglaries'])
 cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
@@ -704,12 +747,10 @@ for month in unique_months:
 
 
 
-"""
+
 
 # allocate policemen
 # take area into account
-print("*****")
-print(merged_cpl_geo, merged_cpl_geo.columns)
 maps_directory = r'C:\\Users\20212324\OneDrive - TU Eindhoven\Pictures\mapsp'
 os.makedirs(maps_directory, exist_ok=True)
 total_predicted_burglaries = merged_cpl_geo['Prediction'].sum()
@@ -718,8 +759,6 @@ total_area_size = merged_cpl_geo['geometry'].area.sum()
 # Calculate the allocation ratio based on predicted burglaries and area size
 merged_cpl_geo['Allocation Ratio'] = (merged_cpl_geo['Prediction'] / total_predicted_burglaries) * ((total_area_size - merged_cpl_geo['geometry'].area) / total_area_size)
 merged_cpl_geo['ratio of total allocation ratio'] = merged_cpl_geo['Allocation Ratio'] / sum(merged_cpl_geo['Allocation Ratio'])*100
-print(sum(merged_cpl_geo['ratio of total allocation ratio']))
-print(merged_cpl_geo[['LSOA code', 'ratio of total allocation ratio']])
 
 
 vmin = merged_cpl_geo['ratio of total allocation ratio'].min()
@@ -744,8 +783,6 @@ total_predicted_burglaries = merged_cpl_geo['Prediction'].sum()
 # Calculate the allocation ratio based on predicted burglaries and area size
 merged_cpl_geo['Allocation Ratio'] = (merged_cpl_geo['Prediction'] / total_predicted_burglaries)
 merged_cpl_geo['ratio of total allocation ratio'] = merged_cpl_geo['Allocation Ratio'] / sum(merged_cpl_geo['Allocation Ratio'])*100
-print(sum(merged_cpl_geo['ratio of total allocation ratio']))
-print(merged_cpl_geo[['LSOA code', 'ratio of total allocation ratio']])
 
 
 vmin = merged_cpl_geo['ratio of total allocation ratio'].min()
@@ -797,12 +834,14 @@ for month in unique_months:
     plt.savefig(os.path.join(maps_directory, 'allocation_map_{}.png'.format(filename)))
     plt.show()
 
-
+"""
 # interacting map lsoa, ward, allocation
 import folium
 import webbrowser
 import pandas as pd
 from branca.colormap import linear
+from folium.plugins import MiniMap
+from folium import plugins
 import branca.colormap as cm
 from matplotlib import cm
 cpw = new_df.groupby(['Ward code', 'Month'])['Prediction'].sum().reset_index()
@@ -811,35 +850,79 @@ merged_cpw_geo['geometry'] = merged_cpw_geo['geometry'].apply(lambda x: Polygon(
 merged_data = merged_cpw_geo[['geometry', 'Prediction', 'Ward code', 'Month']]
 counts_per_LSOA_month = new_df.groupby(['LSOA code', 'Month'])['Prediction'].sum().reset_index()
 merged_cpl_geo = pd.merge(geo_LSOA, counts_per_LSOA_month, on=['LSOA code'])
-total_predicted_burglaries = merged_cpl_geo['Prediction'].sum()
-total_area_size = merged_cpl_geo['geometry'].area.sum()
-merged_cpl_geo['Allocation Ratio'] = (merged_cpl_geo['Prediction'] / total_predicted_burglaries) * ((total_area_size - merged_cpl_geo['geometry'].area) / total_area_size)
-merged_cpl_geo['ratio of total allocation ratio'] = merged_cpl_geo['Allocation Ratio'] / sum(merged_cpl_geo['Allocation Ratio'])*100
-
 merged_data2 = merged_cpl_geo[['geometry', 'Prediction', 'LSOA code', 'Month']]
-merged_data3 = merged_cpl_geo[['geometry', 'LSOA code', 'ratio of total allocation ratio', 'Month']]
+
+# choose month
 month_nr = input('Enter the month number (__): ')
 selected_month = '2019-' + month_nr + '-01'
-# Filter the data for the selected month on both Ward and LSOA layers
 merged_data_selected_month_ward = merged_data[merged_data['Month'] == selected_month]
 merged_data_selected_month_lsoa = merged_data2[merged_data2['Month'] == selected_month]
-merged_data_selected_month_lsoa_ratio = merged_data3[merged_data3['Month'] == selected_month]
+
+# allocation ratios
+merged_data_selected_month_lsoa_ratio = merged_data_selected_month_lsoa
+total_predicted_burglaries = merged_data_selected_month_lsoa_ratio['Prediction'].sum()
+total_area_size = merged_data_selected_month_lsoa_ratio['geometry'].area.sum()
+merged_data_selected_month_lsoa_ratio['Prediction'] = merged_data_selected_month_lsoa_ratio['Prediction'].apply(lambda x: 0 if x < 0 else x)
+merged_data_selected_month_lsoa_ratio['Allocation Ratio'] = (merged_data_selected_month_lsoa_ratio['Prediction'] / total_predicted_burglaries) * ((total_area_size - merged_data_selected_month_lsoa_ratio['geometry'].area) / total_area_size)
+merged_data_selected_month_lsoa_ratio['Police Allocation Ratio'] = (merged_data_selected_month_lsoa_ratio['Allocation Ratio'] / sum(merged_data_selected_month_lsoa_ratio['Allocation Ratio']))*100
+merged_data_selected_month_ward_ratio = merged_data_selected_month_ward
+total_area_size_ward = merged_data_selected_month_ward['geometry'].area.sum()
+total_predicted_burglaries_ward = merged_data_selected_month_ward['Prediction'].sum()
+merged_data_selected_month_ward_ratio['Allocation Ratio'] = (merged_data_selected_month_ward['Prediction'] / total_predicted_burglaries_ward) * ((total_area_size_ward - merged_data_selected_month_ward['geometry'].area) / total_area_size_ward)
+merged_data_selected_month_ward_ratio['Police Allocation Ratio'] = (merged_data_selected_month_ward['Allocation Ratio'] / sum(merged_data_selected_month_ward['Allocation Ratio']))*100
+
+# the sums should sum up to 100
+print(['Ward: ', sum(merged_data_selected_month_ward_ratio['Police Allocation Ratio']), 'LSOA: ', sum(merged_data_selected_month_lsoa_ratio['Police Allocation Ratio'])])
+pd.set_option('display.max_rows', None)
+print('Police allocation ratio per LSOA for month: ' + selected_month)
+print(merged_data_selected_month_lsoa_ratio[['LSOA code', 'Police Allocation Ratio']].groupby('LSOA code')['Police Allocation Ratio'].sum().reset_index())
+
 # color maps
 ward_min_pred = merged_data_selected_month_ward['Prediction'].min()
 ward_max_pred = merged_data_selected_month_ward['Prediction'].max()
 lsoa_min_pred = merged_data_selected_month_lsoa['Prediction'].min()
 lsoa_max_pred = merged_data_selected_month_lsoa['Prediction'].max()
-ratio_min_pred = merged_data_selected_month_lsoa_ratio['ratio of total allocation ratio'].min()
-ratio_max_pred = merged_data_selected_month_lsoa_ratio['ratio of total allocation ratio'].max()
-print(dir(linear))
+ratio_min_pred = merged_data_selected_month_lsoa_ratio['Police Allocation Ratio'].min()
+ratio_max_pred = merged_data_selected_month_lsoa_ratio['Police Allocation Ratio'].max()
+ratio_ward_min_pred = merged_data_selected_month_ward_ratio['Police Allocation Ratio'].min()
+ratio_ward_max_pred = merged_data_selected_month_ward_ratio['Police Allocation Ratio'].max()
 ward_count_colormap = linear.PuOr_11.scale(ward_min_pred, ward_max_pred)
 lsoa_count_colormap = linear.PuOr_11.scale(lsoa_min_pred, lsoa_max_pred)
 ratio_count_colormap = linear.PuOr_11.scale(ratio_min_pred, ratio_max_pred)
+ratio_ward_count_colormap = linear.PuOr_11.scale(ratio_ward_min_pred, ratio_ward_max_pred)
+
+# round the predictions on 2 decimals
+merged_data_selected_month_ward['Prediction'] = round(merged_data_selected_month_ward['Prediction'], 2)
+merged_data_selected_month_lsoa['Prediction'] = round(merged_data_selected_month_lsoa['Prediction'], 2)
+merged_data_selected_month_ward_ratio['Police Allocation Ratio'] = round(merged_data_selected_month_ward_ratio['Police Allocation Ratio'], 2)
+merged_data_selected_month_lsoa_ratio['Police Allocation Ratio'] = round(merged_data_selected_month_lsoa_ratio['Police Allocation Ratio'], 2)
+selected_month_title = pd.to_datetime(selected_month).strftime('%B %Y')
 # Create the interactive map
 m = folium.Map(
     location=[merged_cpw_geo['geometry'][0].centroid.y, merged_cpw_geo['geometry'][0].centroid.x],
-    zoom_start=11
+    zoom_start=11, control_scale=True
 )
+#minimap = MiniMap(tile_layer="OpenStreetMap", position="topright")
+#minimap.add_to(m)
+# Add CSS styling to adjust the position of the controls
+m.get_root().html.add_child(folium.Element('<h3 style="text-align:center;">' + selected_month_title + '</h3>'))
+m.get_root().header.add_child(folium.Element(
+    """
+    <style>
+    .leaflet-top {
+        position: relative !important;
+    }
+    .leaflet-top .leaflet-control-zoom {
+        top: 10px;
+        left: 10px;
+    }
+    .leaflet-bottom.leaflet-right .leaflet-control-scale {
+        bottom: 30px;
+        right: 10px;
+    }
+    </style>
+    """
+))
 # Add the Ward boundaries to the map for the selected month
 folium.GeoJson(
     merged_data_selected_month_ward.drop(columns=['Month']),
@@ -850,7 +933,9 @@ folium.GeoJson(
         'weight': 0.5,
         'fillOpacity': 0.7,
     },
-    tooltip=folium.GeoJsonTooltip(fields=['Ward code', 'Prediction'], labels=True, sticky=True)
+    tooltip=folium.GeoJsonTooltip(fields=['Ward code', 'Prediction'], labels=True, sticky=True, style='''
+            font-size: 15px;
+        ''')
 ).add_to(m)
 # Add the LSOA boundaries to the map for the selected month
 folium.GeoJson(
@@ -864,25 +949,60 @@ folium.GeoJson(
     },
     tooltip=folium.GeoJsonTooltip(fields=['LSOA code', 'Prediction'], labels=True, sticky=True)
 ).add_to(m)
-# Add the police ratio for the selected month
+# Add the police ratio for the selected month per ward
 folium.GeoJson(
-    merged_data_selected_month_lsoa_ratio.drop(columns=['Month']),
-    name='Ratio Police Allocation',
+    merged_data_selected_month_ward_ratio.drop(columns=['Month']),
+    name='Ratio Police Allocation per Ward',
     style_function=lambda feature: {
-        'fillColor': ratio_count_colormap(feature['properties']['ratio of total allocation ratio']),
+        'fillColor': ratio_ward_count_colormap(feature['properties']['Police Allocation Ratio']),
         'color': 'black',
         'weight': 0.5,
         'fillOpacity': 0.7,
     },
-    tooltip=folium.GeoJsonTooltip(fields=['LSOA code', 'ratio of total allocation ratio'], labels=True, sticky=True)
+    tooltip=folium.GeoJsonTooltip(fields=['Ward code', 'Police Allocation Ratio'], labels=True, sticky=True)
+).add_to(m)
+# Add the police ratio for the selected month
+folium.GeoJson(
+    merged_data_selected_month_lsoa_ratio.drop(columns=['Month']),
+    name='Ratio Police Allocation per LSOA',
+    style_function=lambda feature: {
+        'fillColor': ratio_count_colormap(feature['properties']['Police Allocation Ratio']),
+        'color': 'black',
+        'weight': 0.5,
+        'fillOpacity': 0.7,
+    },
+    tooltip=folium.GeoJsonTooltip(fields=['LSOA code', 'Police Allocation Ratio'], labels=True, sticky=True)
 ).add_to(m)
 ward_count_colormap.caption = 'Burglaries per Ward Predictions'
 ward_count_colormap.add_to(m)
 lsoa_count_colormap.caption = 'Burglaries per LSOA Predictions'
 lsoa_count_colormap.add_to(m)
-ratio_count_colormap.caption = 'Ratio Police Allocation Predictions'
+ratio_ward_count_colormap.caption = 'Ratio Police Allocation Predictions per Ward'
+ratio_ward_count_colormap.add_to(m)
+ratio_count_colormap.caption = 'Ratio Police Allocation Predictions per LSOA'
 ratio_count_colormap.add_to(m)
 folium.LayerControl().add_to(m)
 map_file = 'interactive_map_ratio.html'
 m.save(map_file)
 webbrowser.open_new_tab(map_file)
+
+
+"""
+# old people per LSOA
+prop_rent_per_LSOA = df_temp_merged_clean_test.groupby('LSOA code')['Proportion old'].sum().reset_index()
+merged_pspl_geo = pd.merge(geo_LSOA, prop_rent_per_LSOA, on=['LSOA code'])
+vmin = prop_rent_per_LSOA['Proportion old'].min()
+vmax = prop_rent_per_LSOA['Proportion old'].max()
+sorted_data = merged_pspl_geo.sort_values('Proportion old', ascending=False)
+# Plot the merged GeoDataFrame with filled polygons
+ax = merged_pspl_geo.plot(column='Proportion old', cmap='RdBu_r', edgecolor='black', linewidth=0.5, figsize=(10, 10))
+# style the map
+ax.set_title('Proportion old People per LSOA')
+sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+sm.set_array(merged_pspl_geo['Proportion old'])
+cbar = plt.colorbar(sm, orientation='vertical', shrink=0.6, ax=ax)
+cbar.set_label('Proportion old')
+plt.xlabel('latitude')
+plt.ylabel('longitude')
+plt.show()
+"""
