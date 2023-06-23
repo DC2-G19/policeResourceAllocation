@@ -12,12 +12,13 @@ main_crime_data_DAE.ipynb
 XGBoost_Model.ipynb : Predictive model for burglaries
 XGBoost_experimental.ipynb : draft forecasting of burglaries
 ## Unemployment Modeling
+auto_arima.ipynb
 unemployment_forecasting.ipynb : Making of unemployment models + Performance metrics
 predicting_unemployment.py : actual forecasting of 2019 for VIS purposes
 
 ## VISUALIZATION
 ### Unemployment:
-unemployment_visualization.ipynb
+unemployment_visualization_2019.ipynb
 sidebysideGif.ipynb
 ## INTERACTIVE MAP
 xgboost_with_maps.py
