@@ -5,6 +5,9 @@ In this project we should develop an automated, data-driven police demand foreca
 ## DATABASE:
 data_cleaner.py : Takes the original crime files, preprocesses it and forms an SQL db
 dbMaker.py : appends auxiliary datasets
+## EDA:
+main_crime_data_DAE.ipynb
+
 ## BURGLARY MODELING:
 XGBoost_Model.ipynb : Predictive model for burglaries
 XGBoost_experimental.ipynb : draft forecasting of burglaries
@@ -15,3 +18,6 @@ predicting_unemployment.py : actual forecasting of 2019 for VIS purposes
 ## VISUALIZATION
 ### Unemployment:
 unemployment_visualization.ipynb
+sidebysideGif.ipynb
+## INTERACTIVE MAP
+xgboost_with_maps.py
